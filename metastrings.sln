@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29306.81
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mslib", "mslib\mslib.csproj", "{650108A4-B437-4F7F-B755-CFEA53BB58FD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "tests", "tests\tests.csproj", "{5293385C-5DAA-4B58-BD1D-25319E9B732C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{74A41A45-80FD-4833-9669-3A0905120B65}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{31E62885-4DC5-48BB-8E54-FCEB9E3055A6}"
+	ProjectSection(SolutionItems) = preProject
+		docs\diagram.png = docs\diagram.png
+		docs\index.html = docs\index.html
+		docs\metastrings - plan.txt = docs\metastrings - plan.txt
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "metaq", "metaq\metaq.csproj", "{E26A596F-6EC2-4C31-843D-C86DD9E77389}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{650108A4-B437-4F7F-B755-CFEA53BB58FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{650108A4-B437-4F7F-B755-CFEA53BB58FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{650108A4-B437-4F7F-B755-CFEA53BB58FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{650108A4-B437-4F7F-B755-CFEA53BB58FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5293385C-5DAA-4B58-BD1D-25319E9B732C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5293385C-5DAA-4B58-BD1D-25319E9B732C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5293385C-5DAA-4B58-BD1D-25319E9B732C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5293385C-5DAA-4B58-BD1D-25319E9B732C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E26A596F-6EC2-4C31-843D-C86DD9E77389}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E26A596F-6EC2-4C31-843D-C86DD9E77389}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E26A596F-6EC2-4C31-843D-C86DD9E77389}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E26A596F-6EC2-4C31-843D-C86DD9E77389}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{31E62885-4DC5-48BB-8E54-FCEB9E3055A6} = {74A41A45-80FD-4833-9669-3A0905120B65}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		VisualSVNWorkingCopyRoot = .
+		SolutionGuid = {1385C130-598D-4FC9-97D2-2CC750F0D03D}
+	EndGlobalSection
+EndGlobal
