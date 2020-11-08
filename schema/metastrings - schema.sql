@@ -96,6 +96,23 @@ SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = @saved_cs_client;
 
 --
+-- Table structure for table `longstrings`
+--
+
+DROP TABLE IF EXISTS `longstrings`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `longstrings` (
+  `itemid` bigint NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `longstring` text NOT NULL,
+  PRIMARY KEY (`itemid`,`name`),
+  FULLTEXT KEY `idx_longstrings_fulltext` (`longstring`),
+  CONSTRAINT `fk_longstrings_items` FOREIGN KEY (`itemid`) REFERENCES `items` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `names`
 --
 
@@ -157,4 +174,4 @@ CREATE TABLE `tables` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-11-07 15:47:33
+-- Dump completed on 2020-11-07 17:13:46

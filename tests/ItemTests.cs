@@ -81,5 +81,25 @@ namespace metastrings
                 }
             }
         }
+
+        [TestMethod]
+        public void TestLongStringItems()
+        {
+            using (var ctxt = TestUtils.GetCtxt())
+            {
+                int tableId = Tables.GetIdAsync(ctxt, "blet").Result;
+                long itemId = Items.GetIdAsync(ctxt, tableId, Values.GetIdAsync(ctxt, "monkey").Result).Result;
+
+                Assert.IsNull(LongStrings.GetStringAsync(ctxt, itemId, "foo").Result);
+
+                LongStrings.StoreStringAsync(ctxt, itemId, "foo", "bar").Wait();
+                Assert.AreEqual("bar", LongStrings.GetStringAsync(ctxt, itemId, "foo").Result);
+
+                Assert.AreEqual(itemId.ToString(), string.Join("", LongStrings.QueryStringsAsync(ctxt, "foo", "bar").Result));
+
+                LongStrings.DeleteStringAsync(ctxt, itemId, "foo").Wait();
+                Assert.IsNull(LongStrings.GetStringAsync(ctxt, itemId, "foo").Result);
+            }
+        }
     }
 }

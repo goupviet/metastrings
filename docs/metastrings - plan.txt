@@ -1,10 +1,4 @@
-Deal with long strings...somehow
-	separate table
-		CREATE TABLE longstrings (bigint id, bigint itemid, string name, text longstring)
-			unique index on itemid,name
-			fulltext index 
-	separate class with direct GET and PUT and QUERY operations
-
+For Balogna Beats and reintegrate
 LATER:
 Update database diagram
 Update docs
