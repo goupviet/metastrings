@@ -1,4 +1,0 @@
-For Balogna Beats and reintegrate
-LATER:
-Update database diagram
-Update docs
