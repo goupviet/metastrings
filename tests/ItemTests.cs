@@ -86,19 +86,33 @@ namespace metastrings
         public void TestLongStringItems()
         {
             using (var ctxt = TestUtils.GetCtxt())
+            using (Command cmd = new Command(ctxt))
             {
-                int tableId = Tables.GetIdAsync(ctxt, "blet").Result;
-                long itemId = Items.GetIdAsync(ctxt, tableId, Values.GetIdAsync(ctxt, "monkey").Result).Result;
+                string longStr;
 
-                Assert.IsNull(LongStrings.GetStringAsync(ctxt, itemId, "foo").Result);
+                cmd.CreateTableAsync(new TableCreate() { table = "blet" }).Wait();
 
-                LongStrings.StoreStringAsync(ctxt, itemId, "foo", "bar").Wait();
-                Assert.AreEqual("bar", LongStrings.GetStringAsync(ctxt, itemId, "foo").Result);
+                Define define = new Define() { table = "blet" };
+                define.SetData("monkey", "doesNot", "matter");
+                cmd.DefineAsync(define).Wait();
 
-                Assert.AreEqual(itemId.ToString(), string.Join("", LongStrings.QueryStringsAsync(ctxt, "foo", "bar").Result));
+                LongStringOp get = new LongStringOp() { table = "blet", fieldName = "foo", itemValue = "monkey" };
+                longStr = cmd.GetLongStringAsync(get).Result;
+                Assert.IsNull(longStr);
 
-                LongStrings.DeleteStringAsync(ctxt, itemId, "foo").Wait();
-                Assert.IsNull(LongStrings.GetStringAsync(ctxt, itemId, "foo").Result);
+                LongStringPut put = new LongStringPut() { table = "blet", fieldName = "foo", itemValue = "monkey", longString = "bar" };
+                cmd.PutLongStringAsync(put).Wait();
+
+                longStr = cmd.GetLongStringAsync(get).Result;
+                Assert.AreEqual("bar", longStr);
+
+                var results = cmd.QueryLongStringsAsync(new LongStringQuery() { table = "blet", fieldName = "foo", query = "bar" }).Result;
+                Assert.AreEqual(1, results.Count);
+                Assert.AreEqual("monkey", results[0].ToString());
+
+                cmd.DeleteLongStringAsync(get).Wait();
+                longStr = cmd.GetLongStringAsync(get).Result;
+                Assert.IsNull(longStr);
             }
         }
     }

@@ -1,5 +1,3 @@
-add Command-level support for longstrings, ala Define
-
 build up balognabeats4 as POC for metastrings
 	create balognabeats4 from balognabeats3
 	work within the beats code to prepare for the port
@@ -7,3 +5,8 @@ build up balognabeats4 as POC for metastrings
 		massage BContext to more closely match metastring's Context
 	add project reference
 	incrementally port MySQL to metastrings
+
+Added Powered by metastrings to page footers
+	link to old Balogna Beats POC usage of metastrings document
+
+Improve documentation, go into details of the Command class, describe what's possible

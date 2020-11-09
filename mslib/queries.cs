@@ -168,4 +168,23 @@ namespace metastrings
         public string table { get; set; }
         public bool isNumeric { get; set; }
     }
+
+    public class LongStringOp
+    {
+        public string table { get; set; }
+        public object itemValue { get; set; }
+        public string fieldName { get; set; }
+    }
+
+    public class LongStringPut : LongStringOp
+    {
+        public string longString { get; set; }
+    }
+
+    public class LongStringQuery
+    {
+        public string table { get; set; }
+        public string fieldName { get; set; }
+        public string query { get; set; }
+    }
 }

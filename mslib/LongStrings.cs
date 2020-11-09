@@ -57,7 +57,7 @@ namespace metastrings
             await ctxt.Db.ExecuteSqlAsync(deleteSql, cmdParams).ConfigureAwait(false);
         }
 
-        public static async Task<List<long>> QueryStringsAsync(Context ctxt, string name, string query)
+        public static async Task<List<object>> QueryStringsAsync(Context ctxt, int tableId, string name, string query)
         {
             var cmdParams =
                 new Dictionary<string, object>
@@ -67,17 +67,26 @@ namespace metastrings
                 };
             string match = "MATCH(longstring) AGAINST (@query IN BOOLEAN MODE)";
             string querySql = 
-                $"SELECT itemid, {match} AS relevance\n" +
+                $"SELECT bvalues.id, {match} AS relevance\n" +
                 $"FROM longstrings\n" +
+                $"JOIN items ON items.id = longstrings.itemid\n" +
+                $"JOIN bvalues ON bvalues.id = items.valueid\n" +
                 $"WHERE name = @name AND {match}\n" +
+                $"AND items.tableid = {tableId}\n" +
                 $"ORDER BY relevance DESC";
-            var retVal = new List<long>();
+
+            var valueIds = new List<long>();
             using (var reader = await ctxt.Db.ExecuteReaderAsync(querySql, cmdParams).ConfigureAwait(false))
             {
                 while (await reader.ReadAsync().ConfigureAwait(false))
-                    retVal.Add(reader.GetInt64(0));
+                    valueIds.Add(reader.GetInt64(0));
             }
-            return retVal;
+
+            var values = new List<object>();
+            foreach (var valueId in valueIds)
+                values.Add(await Values.GetValueAsync(ctxt, valueId).ConfigureAwait(false));
+            
+            return values;
         }
     }
 }
