@@ -25,14 +25,14 @@ DROP TABLE IF EXISTS `bvalues`;
 CREATE TABLE `bvalues` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `isNumeric` bit(1) NOT NULL,
-  `numberValue` double NOT NULL DEFAULT '0',
-  `stringValue` varchar(255) COLLATE utf8_bin NOT NULL,
+  `numberValue` double NOT NULL,
+  `stringValue` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_uniq_prefix_number` (`stringValue`,`numberValue`,`isNumeric`),
+  UNIQUE KEY `idx_uniq_prefix_number` (`stringValue`,`numberValue`),
   KEY `idx_bvalues_number` (`numberValue`,`isNumeric`,`id`),
   KEY `idx_bvalues_prefix` (`stringValue`,`isNumeric`,`id`),
-  FULLTEXT KEY `idx_string_match` (`stringValue`)
-) ENGINE=InnoDB AUTO_INCREMENT=590663 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+  FULLTEXT KEY `idx_bvalues_fulltext` (`stringValue`)
+) ENGINE=InnoDB AUTO_INCREMENT=590841 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -75,7 +75,7 @@ CREATE TABLE `items` (
   KEY `idx_items_lastmodified` (`lastmodified`),
   CONSTRAINT `fk_item_tables` FOREIGN KEY (`tableid`) REFERENCES `tables` (`id`),
   CONSTRAINT `fk_item_values` FOREIGN KEY (`valueid`) REFERENCES `bvalues` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=734411 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=734485 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -128,7 +128,7 @@ CREATE TABLE `names` (
   UNIQUE KEY `name_types` (`name`,`tableid`),
   KEY `fk_name_table_id_idx` (`tableid`),
   CONSTRAINT `fk_name_table_id` FOREIGN KEY (`tableid`) REFERENCES `tables` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=3077 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3187 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -144,7 +144,7 @@ CREATE TABLE `tables` (
   `isNumeric` bit(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1006 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=1078 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -174,4 +174,4 @@ CREATE TABLE `tables` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-11-07 17:13:46
+-- Dump completed on 2020-11-11 21:14:00

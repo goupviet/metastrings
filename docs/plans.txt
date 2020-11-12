@@ -1,12 +1,26 @@
-build up balognabeats4 as POC for metastrings
-	create balognabeats4 from balognabeats3
-	work within the beats code to prepare for the port
-		Context -> BContext
-		massage BContext to more closely match metastring's Context
-	add project reference
-	incrementally port MySQL to metastrings
+software:
+handle errors specially
+	add an error logs table, just for errors
+	hook it up to the page that uses BLogEntries
+		a fork in the flow of control: you either want logs or errors, not both
+get unit tests to pass
+get website to build
 
-Added Powered by metastrings to page footers
-	link to old Balogna Beats POC usage of metastrings document
+web sites:
+BB4: "Powered by metastrings" 
+	Add link to page footer
+	Point this link to the old programmers page from BB2
+	Link metastrings to BB's programmer's page as POC
 
-Improve documentation, go into details of the Command class, describe what's possible
+deployment;
+create BB3 -> BB2 data transfer program...again
+use staging site to compare things side by side on the server
+fire up the other web server, patch it, then deploy to it
+	keep it out of the LB, but it will be production-like
+
+web sites:
+metastrings: Improve documentation
+	go into details of the Command class
+	describe what's typical, give examples
+
+post to linkedin: metastrings powers POC web site Balogna Beats

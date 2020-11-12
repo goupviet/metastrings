@@ -12,19 +12,15 @@ namespace metastrings
     {
         public Context(string connStrName = "metastrings")
         {
-            string dbConnStr;
-            if (!sm_dbConnStrs.TryGetValue(connStrName, out dbConnStr))
-            {
-                lock (sm_dbBuildLock)
-                {
-                    if (!sm_dbConnStrs.TryGetValue(connStrName, out dbConnStr))
-                    {
-                        dbConnStr = GetDbConnStr(connStrName);
-                        sm_dbConnStrs[connStrName] = dbConnStr;
-                    }
-                }
-            }
-            Db = new MySqlDb(dbConnStr);
+            var connStrObj = ConfigurationManager.ConnectionStrings[connStrName];
+            if (connStrObj == null)
+                throw new ConfigurationErrorsException("metastrings connection string missing from config");
+
+            var connStr = connStrObj.ConnectionString;
+            if (string.IsNullOrWhiteSpace(connStr))
+                throw new ConfigurationErrorsException("metastrings connection string empty in config");
+
+            Db = new MySqlDb(connStr);
         }
 
         public void Dispose()
@@ -47,6 +43,8 @@ namespace metastrings
 
         public IDb Db { get; private set; }
 
+        public Command Cmd => new Command(this);
+
         public MsTrans BeginTrans(IsolationLevel level = IsolationLevel.Unspecified)
         {
             return Db.BeginTrans(level);
@@ -66,14 +64,33 @@ namespace metastrings
             return await Db.ExecuteScalarAsync(sql, cmdParams).ConfigureAwait(false);
         }
 
+        public async Task<List<T>> ExecListAsync<T>(Select select)
+        {
+            var values = new List<T>();
+            using (var reader = await ExecSelectAsync(select))
+            {
+                while (await reader.ReadAsync())
+                    values.Add((T)reader.GetValue(0));
+            }
+            return values;
+        }
+
         public async Task<long> GetRowIdAsync(string tableName, object key)
         {
             Utils.ValidateTableName(tableName, "GetRowId");
             Select select = Sql.Parse($"SELECT id FROM {tableName} WHERE value = @value");
             select.AddParam("@value", key);
-            object objId = await ExecScalarAsync(select).ConfigureAwait(false);
-            long id = Utils.ConvertDbInt64(objId);
+            long id = Utils.ConvertDbInt64(await ExecScalarAsync(select).ConfigureAwait(false));
             return id;
+        }
+
+        public async Task<object> GetRowValueAsync(string tableName, long id)
+        {
+            Utils.ValidateTableName(tableName, "GetRowValueAsync");
+            Select select = Sql.Parse($"SELECT value FROM {tableName} WHERE id = @id");
+            select.AddParam("@id", id);
+            object val = await ExecScalarAsync(select).ConfigureAwait(false);
+            return val;
         }
 
         public async Task<int> ProcessPostOpsAsync()
@@ -108,48 +125,6 @@ namespace metastrings
             m_postItemOps.Clear();
         }
         private List<string> m_postItemOps = new List<string>();
-
-        public static string GetDbConnStr(string connStrName = "metastrings")
-        {
-            var connStrObj = ConfigurationManager.ConnectionStrings[connStrName];
-            if (connStrObj == null)
-                throw new ConfigurationErrorsException("metastrings connection string missing from config");
-
-            var connStr = connStrObj.ConnectionString;
-            if (string.IsNullOrWhiteSpace(connStr))
-                throw new ConfigurationErrorsException("metastrings connection string empty in config");
-
-            if (!IsDbServer(connStr))
-            {
-                string dbFilePath = DbConnStrToFilePath(connStr);
-                connStr = "Data Source=" + dbFilePath;
-            }
-
-            return connStr;
-        }
-
-        public static string DbConnStrToFilePath(string connStr)
-        {
-            if (IsDbServer(connStr))
-                throw new MetaStringsException("Connection string is not for file-based DB");
-
-            string filePath = connStr;
-
-            int equals = filePath.IndexOf('=');
-            if (equals > 0)
-                filePath = filePath.Substring(equals + 1);
-
-            filePath = filePath.Replace("[UserRoaming]", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Trim('\\') + "\\");
-            return filePath;
-        }
-
-        public static bool IsDbServer(string connStr)
-        {
-            bool isServer = connStr.IndexOf("Server=", 0, StringComparison.OrdinalIgnoreCase) >= 0;
-            return isServer;
-        }
-
-        public bool IsServerDb { get; private set; }
 
         private static object sm_dbBuildLock = new object();
         private static ConcurrentDictionary<string, string> sm_dbConnStrs = new ConcurrentDictionary<string, string>();

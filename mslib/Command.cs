@@ -6,21 +6,11 @@ using System.IO;
 
 namespace metastrings
 {
-    public class Command : IDisposable
+    public class Command
     {
-        public Command(Context ctxt, bool keepCtxtOpen = true)
+        public Command(Context ctxt)
         {
             Ctxt = ctxt;
-            m_keepCtxtOpen = keepCtxtOpen;
-        }
-
-        public void Dispose()
-        {
-            if (Ctxt != null && !m_keepCtxtOpen)
-            {
-                Ctxt.Dispose();
-                Ctxt = null;
-            }
         }
 
         public async Task DefineAsync(Define define)
@@ -392,21 +382,18 @@ namespace metastrings
 
         public async Task PutLongStringAsync(LongStringPut put)
         {
-            long itemId = await GetLongStringItemIdAsync(put).ConfigureAwait(false);
-            await LongStrings.StoreStringAsync(Ctxt, itemId, put.fieldName, put.longString).ConfigureAwait(false);
+            await LongStrings.StoreStringAsync(Ctxt, put.itemId, put.fieldName, put.longString).ConfigureAwait(false);
         }
 
         public async Task<string> GetLongStringAsync(LongStringOp get)
         {
-            long itemId = await GetLongStringItemIdAsync(get).ConfigureAwait(false);
-            string longString = await LongStrings.GetStringAsync(Ctxt, itemId, get.fieldName).ConfigureAwait(false);
+            string longString = await LongStrings.GetStringAsync(Ctxt, get.itemId, get.fieldName).ConfigureAwait(false);
             return longString;
         }
 
         public async Task DeleteLongStringAsync(LongStringOp del)
         {
-            long itemId = await GetLongStringItemIdAsync(del).ConfigureAwait(false);
-            await LongStrings.DeleteStringAsync(Ctxt, itemId, del.fieldName).ConfigureAwait(false);
+            await LongStrings.DeleteStringAsync(Ctxt, del.itemId, del.fieldName).ConfigureAwait(false);
         }
 
         public async Task<List<object>> QueryLongStringsAsync(LongStringQuery query)
@@ -414,14 +401,6 @@ namespace metastrings
             int tableId = await Tables.GetIdAsync(Ctxt, query.table, noCreate: true).ConfigureAwait(false);
             var results = await LongStrings.QueryStringsAsync(Ctxt, tableId, query.fieldName, query.query).ConfigureAwait(false);
             return results;
-        }
-
-        private async Task<long> GetLongStringItemIdAsync(LongStringOp op)
-        {
-            int tableId = await Tables.GetIdAsync(Ctxt, op.table, noCreate: true).ConfigureAwait(false);
-            long valueId = await Values.GetIdAsync(Ctxt, op.itemValue).ConfigureAwait(false);
-            long itemId = await Items.GetIdAsync(Ctxt, tableId, valueId, noCreate: true).ConfigureAwait(false);
-            return itemId;
         }
 
         private Context Ctxt;

@@ -136,6 +136,12 @@ namespace metastrings
     {
         public string table { get; set; }
         public List<object> values { get; set; }
+        public void AddValue(object value)
+        {
+            if (values == null)
+                values = new List<object>();
+            values.Add(value);
+        }
     }
 
     public class Drop
@@ -172,7 +178,7 @@ namespace metastrings
     public class LongStringOp
     {
         public string table { get; set; }
-        public object itemValue { get; set; }
+        public long itemId { get; set; }
         public string fieldName { get; set; }
     }
 

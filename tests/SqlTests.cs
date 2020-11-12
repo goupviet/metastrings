@@ -23,16 +23,14 @@ namespace metastrings
                 {
                     var define = new Define() { table = "somethin" };
                     define.SetData("foo", "blet", "monkey");
-                    using (var cmd = new Command(ctxt))
-                        cmd.DefineAsync(define).Wait();
+                    ctxt.Cmd.DefineAsync(define).Wait();
                 }
 
                 // Add another row.
                 {
                     var define = new Define() { table = "somethin" };
                     define.SetData("bar", "flub", "snake");
-                    using (var cmd = new Command(ctxt))
-                        cmd.DefineAsync(define).Wait();
+                    ctxt.Cmd.DefineAsync(define).Wait();
                 }
 
                 // Have a table now, but bogus SELECT column

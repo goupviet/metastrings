@@ -135,13 +135,6 @@ namespace metastrings
                     string insertSql =
                         "INSERT INTO bvalues (isNumeric, numberValue, stringValue) VALUES (0, 0.0, @stringValue)";
                     long id = await ctxt.Db.ExecuteInsertAsync(insertSql, cmdParams).ConfigureAwait(false);
-
-                    if (!ctxt.IsServerDb)
-                    {
-                        string insertSearchSql =
-                            $"INSERT INTO bvaluetext (valueid, stringSearchValue) VALUES ({id}, @stringValue)";
-                        await ctxt.Db.ExecuteInsertAsync(insertSearchSql, cmdParams);
-                    }
                     return id;
                 }
             }

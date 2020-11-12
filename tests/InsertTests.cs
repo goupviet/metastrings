@@ -14,15 +14,31 @@ namespace metastrings
         {
             using (var ctxt = TestUtils.GetCtxt())
             {
-                var define = new Define() { table = "fun" };
-                define.SetData("some", "num", 42);
-                define.SetData("some", "str", "foobar");
-                define.SetData("some", "multi", "blet\nmonkey");
+                {
+                    var define = new Define() { table = "fun" };
+                    define.SetData("some", "num", 42);
+                    define.SetData("some", "str", "foobar");
+                    define.SetData("some", "multi", "blet\nmonkey");
+                    ctxt.Cmd.DefineAsync(define).Wait();
+                }
 
-                using (Command cmd = new Command(ctxt))
-                    cmd.DefineAsync(define).Wait();
+                {
+                    var define = new Define() { table = "fun" };
+                    define.SetData("another", "num", 69);
+                    define.SetData("another", "str", "boofar");
+                    define.SetData("another", "multi", "ape\nagony");
+                    ctxt.Cmd.DefineAsync(define).Wait();
+                }
 
-                long itemId = Items.GetIdAsync(ctxt, Tables.GetIdAsync(ctxt, define.table).Result, Values.GetIdAsync(ctxt, "some").Result).Result;
+                {
+                    var define = new Define() { table = "fun" };
+                    define.SetData("yetsome", "num", 19);
+                    define.SetData("yetsome", "str", "playful");
+                    define.SetData("yetsome", "multi", "balloni\nbeats");
+                    ctxt.Cmd.DefineAsync(define).Wait();
+                }
+
+                long itemId = Items.GetIdAsync(ctxt, Tables.GetIdAsync(ctxt, "fun").Result, Values.GetIdAsync(ctxt, "some").Result).Result;
                 var itemData = NameValues.GetMetadataValuesAsync(ctxt, Items.GetItemDataAsync(ctxt, itemId).Result).Result;
 
                 Assert.AreEqual(42.0, itemData["num"]);
@@ -34,7 +50,7 @@ namespace metastrings
                         Sql.Parse
                         (
                             "SELECT value, multi\n" +
-                            $"FROM {define.table}\n" +
+                            $"FROM fun\n" +
                             "WHERE multi MATCHES @search"
                         );
                     select.AddParam("@search", "blet");
@@ -54,24 +70,29 @@ namespace metastrings
                     }
                 }
 
-                define.SetData("some", "num", 43.0);
-                define.SetData("some", "str", null); // remove the metadata
+                {
+                    Define define = new Define() { table = "fun" };
+                    define.SetData("some", "num", 43.0);
+                    define.SetData("some", "str", null); // remove the metadata
 
-                using (Command cmd = new Command(ctxt))
-                    cmd.DefineAsync(define).Wait();
+                    ctxt.Cmd.DefineAsync(define).Wait();
+                }
 
                 itemData = NameValues.GetMetadataValuesAsync(ctxt, Items.GetItemDataAsync(ctxt, itemId).Result).Result;
                 Assert.IsTrue(!itemData.ContainsKey("str"));
                 Assert.AreEqual(43.0, itemData["num"]);
                 Assert.IsTrue(!itemData.ContainsKey("str"));
 
-                using (Command cmd = new Command(ctxt))
-                    cmd.DeleteAsync(new Delete() { table = define.table, values = new List<object> { "some" } }).Wait();
+                var del = new Delete() { table = "fun" };
+                del.AddValue("some");
+                del.AddValue("another");
+                del.AddValue("yetsome");
+                ctxt.Cmd.DeleteAsync(del).Wait();
 
                 {
                     Select select = new Select()
                     {
-                        from = define.table,
+                        from = "fun",
                         select = new List<string> { "value" }
                     };
                     using (var reader = ctxt.ExecSelectAsync(select).Result)
@@ -85,14 +106,12 @@ namespace metastrings
                     Define numsFirst = new Define() { table = "numsFirst" };
                     numsFirst.SetData(1, "foo", 12);
                     numsFirst.SetData(1, "blet", "79");
-                    using (Command cmd = new Command(ctxt))
-                        cmd.DefineAsync(numsFirst).Wait();
+                    ctxt.Cmd.DefineAsync(numsFirst).Wait();
 
                     Define numsNext = new Define() { table = "numsFirst" };
                     numsNext.SetData(2, "foo", 15);
                     numsNext.SetData(2, "blet", "63");
-                    using (Command cmd = new Command(ctxt))
-                        cmd.DefineAsync(numsNext).Wait();
+                    ctxt.Cmd.DefineAsync(numsNext).Wait();
 
                     Select select = Sql.Parse("SELECT value, foo, blet\nFROM numsFirst");
                     using (var reader = ctxt.ExecSelectAsync(select).Result)

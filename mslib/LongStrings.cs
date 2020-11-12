@@ -59,22 +59,20 @@ namespace metastrings
 
         public static async Task<List<object>> QueryStringsAsync(Context ctxt, int tableId, string name, string query)
         {
+            string match = "MATCH(longstring) AGAINST (@query IN BOOLEAN MODE)";
+            string querySql = 
+                $"SELECT items.valueid, {match} AS relevance\n" +
+                $"FROM longstrings\n" +
+                $"JOIN items ON items.id = longstrings.itemid\n" +
+                $"WHERE longstrings.name = @name AND {match}\n" +
+                $"AND items.tableid = {tableId}\n" +
+                $"ORDER BY relevance DESC";
             var cmdParams =
                 new Dictionary<string, object>
                 {
                     { "@name", name },
                     { "@query", query }
                 };
-            string match = "MATCH(longstring) AGAINST (@query IN BOOLEAN MODE)";
-            string querySql = 
-                $"SELECT bvalues.id, {match} AS relevance\n" +
-                $"FROM longstrings\n" +
-                $"JOIN items ON items.id = longstrings.itemid\n" +
-                $"JOIN bvalues ON bvalues.id = items.valueid\n" +
-                $"WHERE name = @name AND {match}\n" +
-                $"AND items.tableid = {tableId}\n" +
-                $"ORDER BY relevance DESC";
-
             var valueIds = new List<long>();
             using (var reader = await ctxt.Db.ExecuteReaderAsync(querySql, cmdParams).ConfigureAwait(false))
             {
