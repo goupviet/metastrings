@@ -1,8 +1,7 @@
 software:
-integrate MS errorlog into BB error logging and log query
-audit logging
 get unit tests to pass
-get website to build
+create BB3 -> BB2 data transfer program...again
+test out website
 
 web sites:
 BB4: "Powered by metastrings" 
@@ -10,8 +9,7 @@ BB4: "Powered by metastrings"
 		Point this link to the old programmers page from BB2
 
 deployment;
-create BB3 -> BB2 data transfer program...again
-use staging site to compare things side by side on the server
+use staging site to compare things side by side on the lone server
 fire up the other web server, patch it, then deploy to it
 	keep it out of the LB, but it will be production-like
 
@@ -21,4 +19,5 @@ metastrings: Improve documentation
 	go into details of the Command class
 	describe what's typical, give examples
 
-post to linkedin: metastrings powers POC web site Balogna Beats
+post to linkedin & code project: 
+metastrings powers POC web site Balogna Beats

@@ -64,6 +64,18 @@ namespace metastrings
             return await Db.ExecuteScalarAsync(sql, cmdParams).ConfigureAwait(false);
         }
 
+        public async Task<long> ExecScalar64Async(Select select)
+        {
+            long val = Utils.ConvertDbInt64(await ExecScalarAsync(select).ConfigureAwait(false));
+            return val;
+        }
+
+        public async Task<int> ExecScalar32Async(Select select)
+        {
+            int val = Utils.ConvertDbInt32(await ExecScalarAsync(select).ConfigureAwait(false));
+            return val;
+        }
+
         public async Task<List<T>> ExecListAsync<T>(Select select)
         {
             var values = new List<T>();
@@ -80,7 +92,7 @@ namespace metastrings
             Utils.ValidateTableName(tableName, "GetRowId");
             Select select = Sql.Parse($"SELECT id FROM {tableName} WHERE value = @value");
             select.AddParam("@value", key);
-            long id = Utils.ConvertDbInt64(await ExecScalarAsync(select).ConfigureAwait(false));
+            long id = await ExecScalar64Async(select).ConfigureAwait(false);
             return id;
         }
 
