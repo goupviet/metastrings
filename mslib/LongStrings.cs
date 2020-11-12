@@ -57,6 +57,7 @@ namespace metastrings
             await ctxt.Db.ExecuteSqlAsync(deleteSql, cmdParams).ConfigureAwait(false);
         }
 
+        /* UNUSED, tests fail, screw it
         public static async Task<List<object>> QueryStringsAsync(Context ctxt, int tableId, string name, string query)
         {
             string match = "MATCH(longstring) AGAINST (@query IN BOOLEAN MODE)";
@@ -86,5 +87,6 @@ namespace metastrings
             
             return values;
         }
+        */
     }
 }

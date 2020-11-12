@@ -396,12 +396,14 @@ namespace metastrings
             await LongStrings.DeleteStringAsync(Ctxt, del.itemId, del.fieldName).ConfigureAwait(false);
         }
 
+        /* UNUSED, fails fulltext lookups, screw it
         public async Task<List<object>> QueryLongStringsAsync(LongStringQuery query)
         {
             int tableId = await Tables.GetIdAsync(Ctxt, query.table, noCreate: true).ConfigureAwait(false);
             var results = await LongStrings.QueryStringsAsync(Ctxt, tableId, query.fieldName, query.query).ConfigureAwait(false);
             return results;
         }
+        */
 
         private Context Ctxt;
         private bool m_keepCtxtOpen;

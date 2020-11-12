@@ -1,16 +1,13 @@
 software:
-handle errors specially
-	add an error logs table, just for errors
-	hook it up to the page that uses BLogEntries
-		a fork in the flow of control: you either want logs or errors, not both
+integrate MS errorlog into BB error logging and log query
+audit logging
 get unit tests to pass
 get website to build
 
 web sites:
 BB4: "Powered by metastrings" 
 	Add link to page footer
-	Point this link to the old programmers page from BB2
-	Link metastrings to BB's programmer's page as POC
+		Point this link to the old programmers page from BB2
 
 deployment;
 create BB3 -> BB2 data transfer program...again
@@ -20,6 +17,7 @@ fire up the other web server, patch it, then deploy to it
 
 web sites:
 metastrings: Improve documentation
+	link to BB's programmer's page as POC
 	go into details of the Command class
 	describe what's typical, give examples
 

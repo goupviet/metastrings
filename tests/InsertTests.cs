@@ -45,6 +45,9 @@ namespace metastrings
                 Assert.AreEqual("foobar", itemData["str"]);
                 Assert.AreEqual("blet\nmonkey", itemData["multi"]);
 
+                // NOTE: Full text search needs to see our recent changes
+                ctxt.Db.ExecuteSql("OPTIMIZE TABLE bvalues"); 
+
                 {
                     Select select =
                         Sql.Parse
@@ -53,7 +56,7 @@ namespace metastrings
                             $"FROM fun\n" +
                             "WHERE multi MATCHES @search"
                         );
-                    select.AddParam("@search", "blet");
+                    select.AddParam("@search", "monkey");
                     using (var reader = ctxt.ExecSelectAsync(select).Result)
                     {
                         if (!reader.ReadAsync().Result)
