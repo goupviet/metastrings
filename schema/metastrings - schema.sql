@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.20, for Win64 (x86_64)
 --
--- Host: localhost    Database: metastrings
+-- Host: localhost    Database: metastringstest
 -- ------------------------------------------------------
 -- Server version	8.0.20
 
@@ -32,7 +32,23 @@ CREATE TABLE `bvalues` (
   KEY `idx_bvalues_number` (`numberValue`,`isNumeric`,`id`),
   KEY `idx_bvalues_prefix` (`stringValue`,`isNumeric`,`id`),
   FULLTEXT KEY `idx_bvalues_fulltext` (`stringValue`)
-) ENGINE=InnoDB AUTO_INCREMENT=590841 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=591023 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `errorlog`
+--
+
+DROP TABLE IF EXISTS `errorlog`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `errorlog` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `msg` text NOT NULL,
+  `logdate` timestamp NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_errorlog_when` (`logdate`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -75,7 +91,7 @@ CREATE TABLE `items` (
   KEY `idx_items_lastmodified` (`lastmodified`),
   CONSTRAINT `fk_item_tables` FOREIGN KEY (`tableid`) REFERENCES `tables` (`id`),
   CONSTRAINT `fk_item_values` FOREIGN KEY (`valueid`) REFERENCES `bvalues` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=734485 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=734544 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -128,7 +144,7 @@ CREATE TABLE `names` (
   UNIQUE KEY `name_types` (`name`,`tableid`),
   KEY `fk_name_table_id_idx` (`tableid`),
   CONSTRAINT `fk_name_table_id` FOREIGN KEY (`tableid`) REFERENCES `tables` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=3187 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3255 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -144,7 +160,7 @@ CREATE TABLE `tables` (
   `isNumeric` bit(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1078 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=1118 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -174,4 +190,4 @@ CREATE TABLE `tables` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-11-11 21:14:00
+-- Dump completed on 2020-11-12  8:02:21
