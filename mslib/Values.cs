@@ -28,18 +28,7 @@ namespace metastrings
                     throw new ArgumentException($"String length limit reached: {MaxStringLength}", "value");
 
                 long id = -1;
-                bool shouldCache =
-                    (
-                        (value is string)
-                        &&
-                        value.ToString().Length < MaxPrefixLen
-                    )
-                    ||
-                    (
-                        !(value is string)
-                        &&
-                        Convert.ToDouble(value) == Convert.ToInt64(value)
-                     );
+                bool shouldCache = (value is string) || Convert.ToDouble(value) == Convert.ToInt64(value);
                 if (shouldCache)
                 {
                     if (sm_cache.TryGetValue(value, out id))
@@ -51,11 +40,7 @@ namespace metastrings
                 {
                     try
                     {
-                        id = await GetIdSelectAsync(ctxt, value).ConfigureAwait(false); ;
-                        if (id >= 0)
-                            break;
-
-                        id = await GetIdSelectAsync(ctxt, value).ConfigureAwait(false); ;
+                        id = await GetIdSelectAsync(ctxt, value).ConfigureAwait(false);
                         if (id >= 0)
                             break;
 
@@ -94,9 +79,8 @@ namespace metastrings
                 cmdParams.Add("@stringValue", strValue);
                 string selectSql =
                     "SELECT id FROM bvalues WHERE isNumeric = 0 AND stringValue = @stringValue";
-                object idObj = await ctxt.Db.ExecuteScalarAsync(selectSql, cmdParams).ConfigureAwait(false);
-                ScopeTiming.RecordScope($"Values.GetId.SELECT(string(short))", localTimer);
-                long id = Utils.ConvertDbInt64(idObj);
+                long id = Utils.ConvertDbInt64(await ctxt.Db.ExecuteScalarAsync(selectSql, cmdParams).ConfigureAwait(false));
+                ScopeTiming.RecordScope($"Values.GetId.SELECT(string)", localTimer);
                 return id;
             }
             else
@@ -106,9 +90,8 @@ namespace metastrings
                 cmdParams.Add("@numberValue", numberValue);
                 string selectSql =
                     "SELECT id FROM bvalues WHERE isNumeric = 1 AND numberValue = @numberValue";
-                object idObj = await ctxt.Db.ExecuteScalarAsync(selectSql, cmdParams).ConfigureAwait(false);
+                long id = Utils.ConvertDbInt64(await ctxt.Db.ExecuteScalarAsync(selectSql, cmdParams).ConfigureAwait(false));
                 ScopeTiming.RecordScope("Values.GetId.SELECT(number)", localTimer);
-                long id = Utils.ConvertDbInt64(idObj);
                 return id;
             }
         }
@@ -118,25 +101,12 @@ namespace metastrings
             if (value is string)
             {
                 string strValue = (string)value;
-                if (strValue.Length < MaxPrefixLen)
-                {
-                    Dictionary<string, object> cmdParams = new Dictionary<string, object>();
-                    cmdParams.Add("@stringValue", strValue);
-                    string insertSql =
-                        "INSERT INTO bvalues (isNumeric, numberValue, stringValue) VALUES (0, 0.0, @stringValue)";
-                    long id = await ctxt.Db.ExecuteInsertAsync(insertSql, cmdParams).ConfigureAwait(false);
-                    return id;
-                }
-                else
-                {
-                    string prefixValue = strValue.Substring(0, MaxPrefixLen);
-                    Dictionary<string, object> cmdParams = new Dictionary<string, object>();
-                    cmdParams.Add("@stringValue", strValue);
-                    string insertSql =
-                        "INSERT INTO bvalues (isNumeric, numberValue, stringValue) VALUES (0, 0.0, @stringValue)";
-                    long id = await ctxt.Db.ExecuteInsertAsync(insertSql, cmdParams).ConfigureAwait(false);
-                    return id;
-                }
+                Dictionary<string, object> cmdParams = new Dictionary<string, object>();
+                cmdParams.Add("@stringValue", strValue);
+                string insertSql =
+                    "INSERT INTO bvalues (isNumeric, numberValue, stringValue) VALUES (0, 0.0, @stringValue)";
+                long id = await ctxt.Db.ExecuteInsertAsync(insertSql, cmdParams).ConfigureAwait(false);
+                return id;
             }
             else
             {
@@ -224,8 +194,7 @@ namespace metastrings
             sm_cacheBack.Clear();
         }
 
-        public static int MaxPrefixLen = 255;
-        public static int MaxStringLength = 65535;
+        public static int MaxStringLength = 255;
 
         private static ConcurrentDictionary<object, long> sm_cache = new ConcurrentDictionary<object, long>();
         private static ConcurrentDictionary<long, object> sm_cacheBack = new ConcurrentDictionary<long, object>();

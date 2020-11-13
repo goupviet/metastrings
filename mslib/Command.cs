@@ -317,11 +317,18 @@ namespace metastrings
             var totalTimer = ScopeTiming.StartTiming();
             try
             {
-                int tableId = await Tables.GetIdAsync(Ctxt, drop.table, noCreate: true).ConfigureAwait(false);
+                NameValues.ClearCaches();
+
+                int tableId = await Tables.GetIdAsync(Ctxt, drop.table, noCreate: true, noException: true).ConfigureAwait(false);
+                if (tableId < 0)
+                    return;
+
                 await Ctxt.Db.ExecuteSqlAsync($"DELETE FROM itemnamevalues WHERE nameid IN (SELECT id FROM names WHERE tableid = {tableId})").ConfigureAwait(false);
                 await Ctxt.Db.ExecuteSqlAsync($"DELETE FROM names WHERE tableid = {tableId}").ConfigureAwait(false);
                 await Ctxt.Db.ExecuteSqlAsync($"DELETE FROM items WHERE tableid = {tableId}").ConfigureAwait(false);
                 await Ctxt.Db.ExecuteSqlAsync($"DELETE FROM tables WHERE id = {tableId}").ConfigureAwait(false);
+
+                NameValues.ClearCaches();
             }
             finally
             {
@@ -406,6 +413,5 @@ namespace metastrings
         */
 
         private Context Ctxt;
-        private bool m_keepCtxtOpen;
     }
 }

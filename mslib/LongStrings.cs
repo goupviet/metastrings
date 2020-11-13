@@ -8,6 +8,9 @@ namespace metastrings
     {
         public static async Task StoreStringAsync(Context ctxt, long itemId, string name, string longstring)
         {
+            if (longstring.Length >= 64 * 1024)
+                throw new MetaStringsException("String length exceeds max 64KB");
+
             var cmdParams =
                 new Dictionary<string, object>
                 {
