@@ -1,17 +1,26 @@
 software:
-get unit tests to pass
+GetNameIsNumericAsync:
+	add Utils.GetInt64 call instead of object parsing
+	add unit test
+pull fql and get it to build and run
+add page to output item summary (SummarizeItemAsync), like the metaq page
 create BB3 -> BB2 data transfer program...again
-test out website
+test out website locally, thoroughly
+	come up with a test plan for all manual testing
 
-web sites:
+web site:
 BB4: "Powered by metastrings" 
 	Add link to page footer
 		Point this link to the old programmers page from BB2
 
-deployment;
-use staging site to compare things side by side on the lone server
-fire up the other web server, patch it, then deploy to it
+deployment:
+fire up the admin server, patch it, then run metaq and the item summary tool
+use staging site to compare things side by side on the lone active server (.18)
+fire up the other web server (.19), patch it, then deploy to it
 	keep it out of the LB, but it will be production-like
+	see how production use will be
+do one last BB3 to BB4 metastrings transfer
+deploy 
 
 web sites:
 metastrings: Improve documentation

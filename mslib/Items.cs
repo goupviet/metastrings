@@ -96,24 +96,24 @@ namespace metastrings
             await ctxt.Db.ExecuteSqlAsync(sql).ConfigureAwait(false);
         }
 
-        public static string SummarizeItem(Context ctxt, long itemId) // debugging tool
+        public static async Task<string> SummarizeItemAsync(Context ctxt, long itemId) // debugging tool
         {
             var sb = new StringBuilder();
 
             sb.AppendLine($"Item: {itemId}");
 
             int tableId =
-                Utils.ConvertDbInt32(ctxt.Db.ExecuteScalarAsync($"SELECT tableid FROM items WHERE id = {itemId}").Result);
-            string tableName = Tables.GetTableAsync(ctxt, tableId).Result.name;
+                Utils.ConvertDbInt32(await ctxt.Db.ExecuteScalarAsync($"SELECT tableid FROM items WHERE id = {itemId}"));
+            string tableName = (await Tables.GetTableAsync(ctxt, tableId)).name;
             sb.AppendLine($"Table: {tableName} ({tableId})");
 
             long valueId = 
-                Utils.ConvertDbInt64(ctxt.Db.ExecuteScalarAsync($"SELECT valueid FROM items WHERE id = {itemId}").Result);
-            object value = Values.GetValueAsync(ctxt, valueId).Result;
+                Utils.ConvertDbInt64(await ctxt.Db.ExecuteScalarAsync($"SELECT valueid FROM items WHERE id = {itemId}"));
+            object value = await Values.GetValueAsync(ctxt, valueId);
             sb.AppendLine($"Value: {value} ({valueId})");
 
             sb.AppendLine("Metadata:");
-            var metadata = NameValues.GetMetadataValuesAsync(ctxt, GetItemDataAsync(ctxt, itemId).Result).Result;
+            var metadata = await NameValues.GetMetadataValuesAsync(ctxt, GetItemDataAsync(ctxt, itemId).Result);
             foreach (var kvp in metadata)
                 sb.AppendLine($"{kvp.Key}: {kvp.Value}");
 

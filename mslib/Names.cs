@@ -113,6 +113,21 @@ namespace metastrings
                 return obj;
             }
         }
+        public static async Task<bool> GetNameIsNumericAsync(Context ctxt, int id)
+        {
+            if (id < 0)
+                return false;
+
+            bool isNumeric;
+            if (sm_isNumericCache.TryGetValue(id, out isNumeric))
+                return isNumeric;
+
+            string sql = $"SELECT isNumeric FROM names WHERE id = {id}";
+            object numericObj = await ctxt.Db.ExecuteScalarAsync(sql).ConfigureAwait(false);
+            isNumeric = (numericObj == null || numericObj == DBNull.Value) ? false : (ulong)numericObj != 0;
+            sm_isNumericCache[id] = isNumeric;
+            return isNumeric;
+        }
 
         public static async Task CacheNamesAsync(Context ctxt, IEnumerable<int> ids)
         {
@@ -154,9 +169,11 @@ namespace metastrings
         {
             sm_cache.Clear();
             sm_cacheBack.Clear();
+            sm_isNumericCache.Clear();
         }
 
         private static ConcurrentDictionary<string, int> sm_cache = new ConcurrentDictionary<string, int>();
         private static ConcurrentDictionary<int, NameObj> sm_cacheBack = new ConcurrentDictionary<int, NameObj>();
+        private static ConcurrentDictionary<int, bool> sm_isNumericCache = new ConcurrentDictionary<int, bool>();
     }
 }

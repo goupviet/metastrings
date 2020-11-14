@@ -38,9 +38,9 @@ namespace metastrings
 
                 using (var msTrans = ctxt.BeginTrans())
                 {
-                    Define define = new Define() { table = "apelike" };
-                    define.SetData("foo", "blet", "monkey");
-                    define.SetData("foo", "something", "else");
+                    Define define = new Define() { table = "apelike", key = "foo" };
+                    define.SetData("blet", "monkey");
+                    define.SetData("something", "else");
                     ctxt.Cmd.DefineAsync(define).Wait();
                     msTrans.Commit();
                 }

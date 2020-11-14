@@ -21,15 +21,15 @@ namespace metastrings
 
                 // Add a row.
                 {
-                    var define = new Define() { table = "somethin" };
-                    define.SetData("foo", "blet", "monkey");
+                    var define = new Define() { table = "somethin", key = "foo" };
+                    define.SetData("blet", "monkey");
                     ctxt.Cmd.DefineAsync(define).Wait();
                 }
 
                 // Add another row.
                 {
-                    var define = new Define() { table = "somethin" };
-                    define.SetData("bar", "flub", "snake");
+                    var define = new Define() { table = "somethin", key = "bar" };
+                    define.SetData("flub", "snake");
                     ctxt.Cmd.DefineAsync(define).Wait();
                 }
 

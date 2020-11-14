@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace metastrings
 {
-    public class Define
+    public class MultiDefine
     {
         public string table { get; set; }
 
@@ -45,6 +45,21 @@ namespace metastrings
         }
 
         private Dictionary<string, bool> m_namesAreNumeric;
+    }
+
+    public class Define
+    {
+        public string table { get; set; }
+        public object key { get; set; }
+        public Dictionary<string, object> metadata { get; set; }
+
+        // helper function
+        public void SetData(string metadataName, object metadataValue)
+        {
+            if (metadata == null)
+                metadata = new Dictionary<string, object>();
+            metadata[metadataName] = metadataValue;
+        }
     }
 
     public class GetRequest
