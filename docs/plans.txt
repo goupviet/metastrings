@@ -1,8 +1,4 @@
 software:
-GetNameIsNumericAsync:
-	add Utils.GetInt64 call instead of object parsing
-	add unit test
-pull fql and get it to build and run
 add page to output item summary (SummarizeItemAsync), like the metaq page
 create BB3 -> BB2 data transfer program...again
 test out website locally, thoroughly

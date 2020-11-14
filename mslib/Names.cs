@@ -123,8 +123,8 @@ namespace metastrings
                 return isNumeric;
 
             string sql = $"SELECT isNumeric FROM names WHERE id = {id}";
-            object numericObj = await ctxt.Db.ExecuteScalarAsync(sql).ConfigureAwait(false);
-            isNumeric = (numericObj == null || numericObj == DBNull.Value) ? false : (ulong)numericObj != 0;
+            long numericNum = Utils.ConvertDbInt64(await ctxt.Db.ExecuteScalarAsync(sql).ConfigureAwait(false));
+            isNumeric = numericNum != 0;
             sm_isNumericCache[id] = isNumeric;
             return isNumeric;
         }

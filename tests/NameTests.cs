@@ -21,6 +21,7 @@ namespace metastrings
                 Assert.AreEqual("foobar", name.name);
                 Assert.IsTrue(!name.isNumeric);
                 Assert.AreEqual("foobar", Names.GetNameAsync(ctxt, secondId).Result.name);
+                Assert.AreEqual(name.isNumeric, Names.GetNameIsNumericAsync(ctxt, firstId).Result);
 
                 int thirdId = Names.GetIdAsync(ctxt, tableId, "bletmonkey", isNumeric: true).Result;
                 int fourthId = Names.GetIdAsync(ctxt, tableId, "bletmonkey").Result;
@@ -31,6 +32,7 @@ namespace metastrings
                 Assert.AreEqual("bletmonkey", name2.name);
                 Assert.IsTrue(name2.isNumeric);
                 Assert.AreEqual("bletmonkey", Names.GetNameAsync(ctxt, fourthId).Result.name);
+                Assert.AreEqual(name2.isNumeric, Names.GetNameIsNumericAsync(ctxt, fourthId).Result);
             }
         }
     }
