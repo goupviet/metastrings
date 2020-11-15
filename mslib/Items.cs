@@ -96,7 +96,7 @@ namespace metastrings
             await ctxt.Db.ExecuteSqlAsync(sql).ConfigureAwait(false);
         }
 
-        public static async Task<string> SummarizeItemAsync(Context ctxt, long itemId) // debugging tool
+        public static async Task<string> SummarizeItemAsync(Context ctxt, long itemId)
         {
             var sb = new StringBuilder();
 
@@ -110,12 +110,21 @@ namespace metastrings
             long valueId = 
                 Utils.ConvertDbInt64(await ctxt.Db.ExecuteScalarAsync($"SELECT valueid FROM items WHERE id = {itemId}"));
             object value = await Values.GetValueAsync(ctxt, valueId);
-            sb.AppendLine($"Value: {value} ({valueId})");
+            sb.AppendLine($"Value: {value} ({valueId})\n");
 
             sb.AppendLine("Metadata:");
             var metadata = await NameValues.GetMetadataValuesAsync(ctxt, GetItemDataAsync(ctxt, itemId).Result);
             foreach (var kvp in metadata)
                 sb.AppendLine($"{kvp.Key}: {kvp.Value}");
+
+            sb.AppendLine("Long Strings:");
+            using (var reader = await ctxt.Db.ExecuteReaderAsync($"SELECT name, longstring FROM longstrings WHERE itemid = {itemId}"))
+            {
+                while (await reader.ReadAsync())
+                {
+                    sb.AppendLine($"{reader.GetString(0)}:\n{reader.GetString(1)}\n");
+                }
+            }
 
             return sb.ToString();
         }
