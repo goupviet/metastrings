@@ -32,7 +32,7 @@ CREATE TABLE `bvalues` (
   KEY `idx_bvalues_number` (`numberValue`,`isNumeric`,`id`),
   KEY `idx_bvalues_prefix` (`stringValue`,`isNumeric`,`id`),
   FULLTEXT KEY `idx_bvalues_fulltext` (`stringValue`)
-) ENGINE=InnoDB AUTO_INCREMENT=592673 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=593123 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -75,7 +75,7 @@ CREATE TABLE `items` (
   KEY `idx_items_lastmodified` (`lastmodified`),
   CONSTRAINT `fk_item_tables` FOREIGN KEY (`tableid`) REFERENCES `tables` (`id`),
   CONSTRAINT `fk_item_values` FOREIGN KEY (`valueid`) REFERENCES `bvalues` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=735336 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=735510 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -128,7 +128,7 @@ CREATE TABLE `names` (
   UNIQUE KEY `name_types` (`name`,`tableid`),
   KEY `fk_name_table_id_idx` (`tableid`),
   CONSTRAINT `fk_name_table_id` FOREIGN KEY (`tableid`) REFERENCES `tables` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=3542 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3615 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -144,7 +144,7 @@ CREATE TABLE `tables` (
   `isNumeric` bit(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1236 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=1253 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -159,7 +159,7 @@ CREATE TABLE `tables` (
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50013 SQL SECURITY DEFINER */
 /*!50001 VIEW `itemvalues` AS select `inv`.`itemid` AS `itemid`,`inv`.`nameid` AS `nameid`,`v`.`id` AS `valueid`,`v`.`isNumeric` AS `isNumeric`,`v`.`numberValue` AS `numberValue`,`v`.`stringValue` AS `stringValue` from (`itemnamevalues` `inv` join `bvalues` `v` on((`v`.`id` = `inv`.`valueid`))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -174,4 +174,4 @@ CREATE TABLE `tables` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-11-14 16:19:14
+-- Dump completed on 2020-11-15 11:10:50

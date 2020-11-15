@@ -1,28 +1,34 @@
-software:
-create BB3 -> BB2 data transfer program...again
-test out website locally, thoroughly
-	come up with a test plan for all pre-release manual testing
-	test out page to output item summary
-
-web site:
-Update metstrings.aspx page from BB2
-Added "Powered by metastrings" to metastrings.aspx to page footer
-	- validate
-
 deployment:
-fire up the admin server, patch it, then run metaq and the item summary tool
-use staging site to compare things side by side on the lone active server (.18)
-fire up the other web server (.19), patch it, then deploy to it
-	keep it out of the LB, but it will be production-like
-	see how production use will be
-do one last BB3 to BB4 metastrings transfer
-deploy 
+fire up the admin server
+	[x] create the metastrings schema
+	[x] patch it
+	[x] transfer program
+		x upload 
+		x config
+		x run
+		
+fire up the other web server (.19)
+	[x] patch it
+	[x] deploy to staging, do a full manual test
+	[x] deploy to production, do a full manual test
+	[x] see what production looks like
+
+LB switcheroo	
+[ ] put .19 in the LB
+[ ] pull .18 out of the LB
+[ ] see what smokes
+
+stop unused ec2s
+[ ] admin server
+[ ] big fat web server 1
 
 web sites:
 metastrings: Improve documentation
 	link to BB's programmer's page as POC
-	go into details of the Command class
+	go into details of the Command and Context classes
 	describe what's typical, give examples
+	host and link to old documentation for metastrings v1
+michaelballoni.com: adjust link order, say how metastrings powers balogna beats
 
-post to linkedin & code project: 
+post to linkedin: 
 metastrings powers POC web site Balogna Beats

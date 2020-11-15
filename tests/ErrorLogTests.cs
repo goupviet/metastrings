@@ -14,10 +14,10 @@ namespace metastrings
             {
                 for (int t = 1; t <= 3; ++t)
                 {
-                    ErrorLog.Clear(ctxt);
+                    ErrorLog.ClearAsync(ctxt).Wait();
 
-                    ErrorLog.Log(ctxt, 1, "10.0.0.1", "foo foo bar");
-                    ErrorLog.Log(ctxt, 2, "10.0.0.2", "blet monkey");
+                    ErrorLog.LogAsync(ctxt, 1, "10.0.0.1", "foo foo bar").Wait();
+                    ErrorLog.LogAsync(ctxt, 2, "10.0.0.2", "blet monkey").Wait();
 
                     {
                         var logEntries = ErrorLog.QueryAsync(ctxt, "%foo%", 10).Result;

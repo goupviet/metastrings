@@ -97,7 +97,7 @@ namespace metastrings
 
                 long monkeyId = ctxt.GetRowIdAsync("blet", "monkey").Result;
 
-                LongStringOp get = new LongStringOp() { table = "blet", fieldName = "foo", itemId = monkeyId };
+                LongStringGet get = new LongStringGet() { table = "blet", fieldName = "foo", itemId = monkeyId, like = "" };
                 longStr = ctxt.Cmd.GetLongStringAsync(get).Result;
                 Assert.IsNull(longStr);
 
@@ -107,13 +107,8 @@ namespace metastrings
                 longStr = ctxt.Cmd.GetLongStringAsync(get).Result;
                 Assert.AreEqual("bar", longStr);
 
-				/* UNUSED, tests fail, screw it
-                var results = ctxt.Cmd.QueryLongStringsAsync(new LongStringQuery() { table = "blet", fieldName = "foo", query = "bar" }).Result;
-                Assert.AreEqual(1, results.Count);
-                Assert.AreEqual("monkey", results[0].ToString());
-				*/
-
-                ctxt.Cmd.DeleteLongStringAsync(get).Wait();
+                LongStringOp del = new LongStringOp() { table = "blet", fieldName = "foo", itemId = monkeyId };
+                ctxt.Cmd.DeleteLongStringAsync(del).Wait();
                 longStr = ctxt.Cmd.GetLongStringAsync(get).Result;
                 Assert.IsNull(longStr);
             }
