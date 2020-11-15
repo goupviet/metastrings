@@ -21,7 +21,7 @@ namespace metastrings
             string updateSql =
                 "UPDATE longstrings SET longstring = @longstring WHERE itemid = @itemid AND name = @name";
             int affected = await ctxt.Db.ExecuteSqlAsync(updateSql, cmdParams).ConfigureAwait(false);
-            if (affected == 0) // unlikely
+            if (affected == 0)
             {
                 string insertSql =
                     "INSERT INTO longstrings (itemid, name, longstring)\n" +
@@ -30,15 +30,18 @@ namespace metastrings
             }
         }
 
-        public static async Task<string> GetStringAsync(Context ctxt, long itemId, string name)
+        public static async Task<string> GetStringAsync(Context ctxt, long itemId, string name, string like = "")
         {
             var cmdParams =
                 new Dictionary<string, object>
                 {
                     { "@itemid", itemId },
-                    { "@name", name }
+                    { "@name", name },
+                    { "@like", like }
                 };
             string storeSql = "SELECT longstring FROM longstrings WHERE itemid= @itemid AND name = @name";
+            if (!string.IsNullOrWhiteSpace(like))
+                storeSql += " AND longstring LIKE @like";
             using (var reader = await ctxt.Db.ExecuteReaderAsync(storeSql, cmdParams).ConfigureAwait(false))
             {
                 if (!await reader.ReadAsync().ConfigureAwait(false))
@@ -59,37 +62,5 @@ namespace metastrings
             string deleteSql = "DELETE FROM longstrings WHERE itemid = @itemid AND name = @name";
             await ctxt.Db.ExecuteSqlAsync(deleteSql, cmdParams).ConfigureAwait(false);
         }
-
-        /* UNUSED, tests fail, screw it
-        public static async Task<List<object>> QueryStringsAsync(Context ctxt, int tableId, string name, string query)
-        {
-            string match = "MATCH(longstring) AGAINST (@query IN BOOLEAN MODE)";
-            string querySql = 
-                $"SELECT items.valueid, {match} AS relevance\n" +
-                $"FROM longstrings\n" +
-                $"JOIN items ON items.id = longstrings.itemid\n" +
-                $"WHERE longstrings.name = @name AND {match}\n" +
-                $"AND items.tableid = {tableId}\n" +
-                $"ORDER BY relevance DESC";
-            var cmdParams =
-                new Dictionary<string, object>
-                {
-                    { "@name", name },
-                    { "@query", query }
-                };
-            var valueIds = new List<long>();
-            using (var reader = await ctxt.Db.ExecuteReaderAsync(querySql, cmdParams).ConfigureAwait(false))
-            {
-                while (await reader.ReadAsync().ConfigureAwait(false))
-                    valueIds.Add(reader.GetInt64(0));
-            }
-
-            var values = new List<object>();
-            foreach (var valueId in valueIds)
-                values.Add(await Values.GetValueAsync(ctxt, valueId).ConfigureAwait(false));
-            
-            return values;
-        }
-        */
     }
 }

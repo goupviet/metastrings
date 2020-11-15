@@ -1,13 +1,13 @@
 software:
-add page to output item summary (SummarizeItemAsync), like the metaq page
 create BB3 -> BB2 data transfer program...again
 test out website locally, thoroughly
-	come up with a test plan for all manual testing
+	come up with a test plan for all pre-release manual testing
+	test out page to output item summary
 
 web site:
-BB4: "Powered by metastrings" 
-	Add link to page footer
-		Point this link to the old programmers page from BB2
+Update metstrings.aspx page from BB2
+Added "Powered by metastrings" to metastrings.aspx to page footer
+	- validate
 
 deployment:
 fire up the admin server, patch it, then run metaq and the item summary tool

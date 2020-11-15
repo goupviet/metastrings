@@ -197,6 +197,14 @@ namespace metastrings
         public string fieldName { get; set; }
     }
 
+    public class LongStringGet
+    {
+        public string table { get; set; }
+        public long itemId { get; set; }
+        public string fieldName { get; set; }
+        public string like { get; set; }
+    }
+
     public class LongStringPut : LongStringOp
     {
         public string longString { get; set; }

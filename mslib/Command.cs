@@ -462,9 +462,9 @@ namespace metastrings
             await LongStrings.StoreStringAsync(Ctxt, put.itemId, put.fieldName, put.longString).ConfigureAwait(false);
         }
 
-        public async Task<string> GetLongStringAsync(LongStringOp get)
+        public async Task<string> GetLongStringAsync(LongStringGet get)
         {
-            string longString = await LongStrings.GetStringAsync(Ctxt, get.itemId, get.fieldName).ConfigureAwait(false);
+            string longString = await LongStrings.GetStringAsync(Ctxt, get.itemId, get.fieldName, get.like).ConfigureAwait(false);
             return longString;
         }
 
@@ -472,15 +472,6 @@ namespace metastrings
         {
             await LongStrings.DeleteStringAsync(Ctxt, del.itemId, del.fieldName).ConfigureAwait(false);
         }
-
-        /* UNUSED, fails fulltext lookups, screw it
-        public async Task<List<object>> QueryLongStringsAsync(LongStringQuery query)
-        {
-            int tableId = await Tables.GetIdAsync(Ctxt, query.table, noCreate: true).ConfigureAwait(false);
-            var results = await LongStrings.QueryStringsAsync(Ctxt, tableId, query.fieldName, query.query).ConfigureAwait(false);
-            return results;
-        }
-        */
 
         private Context Ctxt;
     }
