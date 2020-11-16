@@ -1,34 +1,6 @@
-deployment:
-fire up the admin server
-	[x] create the metastrings schema
-	[x] patch it
-	[x] transfer program
-		x upload 
-		x config
-		x run
-		
-fire up the other web server (.19)
-	[x] patch it
-	[x] deploy to staging, do a full manual test
-	[x] deploy to production, do a full manual test
-	[x] see what production looks like
-
-LB switcheroo	
-[ ] put .19 in the LB
-[ ] pull .18 out of the LB
-[ ] see what smokes
-
-stop unused ec2s
-[ ] admin server
-[ ] big fat web server 1
-
-web sites:
-metastrings: Improve documentation
-	link to BB's programmer's page as POC
-	go into details of the Command and Context classes
-	describe what's typical, give examples
-	host and link to old documentation for metastrings v1
-michaelballoni.com: adjust link order, say how metastrings powers balogna beats
+[ ] metastrings: Improve documentation
+	[ ] get feedback for iverson, or somebody, on metastrings
 
 post to linkedin: 
-metastrings powers POC web site Balogna Beats
+[ ] metastrings powers POC web site Balogna Beats
+
