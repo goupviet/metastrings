@@ -1,8 +1,6 @@
-metastrings is a NoSQL database.  
+metastrings is a NoSQL database extension to MySQL.  
 
 It is a .NET Core solution, soon to be .NET 5, so you can run it on macOS, Linux, and Windows.
-
-The solution includes libraries for database clients, and programs for adding and querying data.
 
 I invite brutal criticism, and substantial contributions.  
 
