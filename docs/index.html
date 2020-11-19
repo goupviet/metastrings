@@ -124,17 +124,19 @@
         And programming in metastrings is much easier on the hands than traditional database programming.
 
         <h2><a name="installation">Installation</a></h2>
+		Metastrings is a thin MySQL wrapper, so your goal is to build the software, create the MySQL schema, and integrate with your solutiion
 		<ol>
-			<li>Metastrings is a thin MySQL wrapper, so your goal is to build the software, create the MySQL schema, and integrate with your solutiion
 			<li>Get the source from <a target=_blank href="https://github.com/michaelsballoni/metastrings2">GitHub</a>.
 			<li>Build the source using Microsoft Visual Studio 2019.
 			<li>Provision a new MySQL database schema, call it "metastrings".
 			<li>Create the metastring schema using the "metastrings - schema.sql" file in the source repository under "schema"
 			<li>Integrate the metastrings project into your solution by addding a reference to metastring's mslib project
 			<li>In your application project configuration file, create a DB connection string setting named "metastrings" with a connection string addressing the schema you created above
+			<li>To start using metastrings in your code, know that metastrings uses the "metastrings" namespace
 			<li>
-				To start using metastrings in your code, know that metastrings uses the "metastrings" namespace, and you can start by using 
-				<a target=_blank href="https://www.balognabeats.com/metastrings.aspx#define">Define</a> to create metastrings schema and upsert data
+				You can start by using
+				<a target=_blank href="https://www.balognabeats.com/metastrings.aspx#define">Define</a> to create metastrings schema and upsert data,
+				and <a target=_blank href="https://www.balognabeats.com/metastrings.aspx#select">Select</a> to get data out
 			</li>
 		</ol>
 		
