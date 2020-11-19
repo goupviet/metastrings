@@ -1,6 +1,3 @@
-[ ] metastrings: Improve documentation
-	[ ] get feedback for iverson, or somebody, on metastrings
+[ ] get feedback on documentation from iverson, or somebody, on metastrings
 
-post to linkedin: 
-[ ] metastrings powers POC web site Balogna Beats
-
+[ ] post to linkedin: metastrings powers POC web site Balogna Beats

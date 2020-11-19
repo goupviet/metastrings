@@ -42,6 +42,10 @@
             margin-left: 20em;
             padding-left: 1em;
         }
+		
+		#projectVersion {
+			margin-left: 1em;
+		}
 
         .topic {
             font-weight: bolder;
@@ -51,14 +55,11 @@
 </head>
 <body>
     <div id=navbar>
+		<h3 id=projectVersion>metastrings v2</h3>
         <ul>
-            <li>
-                <a href="#features">Why metastrings?</a>
-            </li>
-
-            <li>
-                <a href="#gettingstarted">Getting Started</a>
-            </li>
+            <li><a href="#features">Why metastrings?</a></li>
+            <li><a href="#gettingstarted">Getting Started</a></li>
+            <li><a href="#installation">Installation</a></li>
         </ul>
 		
         <div class=contentGroupHeader>Contact</div>
@@ -122,11 +123,22 @@
         and you've got amazing technology to power your next database project.
         And programming in metastrings is much easier on the hands than traditional database programming.
 
-        <h3><a name="schema">Internal MySQL Database Schema</a></h3>
-        <img src="diagram2.png">
-        <br>
-
-        <h3>metastrings vs. metastrings2</h3>
+        <h2><a name="installation">Installation</a></h2>
+		<ol>
+			<li>Metastrings is a thin MySQL wrapper, so your goal is to build the software, create the MySQL schema, and integrate with your solutiion
+			<li>Get the source from <a target=_blank href="https://github.com/michaelsballoni/metastrings2">GitHub</a>.
+			<li>Build the source using Microsoft Visual Studio 2019.
+			<li>Provision a new MySQL database schema, call it "metastrings".
+			<li>Create the metastring schema using the "metastrings - schema.sql" file in the source repository under "schema"
+			<li>Integrate the metastrings project into your solution by addding a reference to metastring's mslib project
+			<li>In your application project configuration file, create a DB connection string setting named "metastrings" with a connection string addressing the schema you created above
+			<li>
+				To start using metastrings in your code, know that metastrings uses the "metastrings" namespace, and you can start by using 
+				<a target=_blank href="https://www.balognabeats.com/metastrings.aspx#define">Define</a> to create metastrings schema and upsert data
+			</li>
+		</ol>
+		
+        <h2>metastrings vs. metastrings2</h2>
         In github you'll notice metastrings and metastrings2 projects.
         <br><br>
         metastrings(v1) supported a wide variety applications using SqLite or MySQL,
@@ -231,6 +243,10 @@ relevance: 2.353236198425293
 Results: 1
 
 ></pre>
+
+        <h2><a name="schema">Internal MySQL Database Schema</a></h2>
+        <img src="diagram2.png">
+        <br>
     </div>
 </body>
 </html>
