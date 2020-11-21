@@ -52,13 +52,14 @@
             font-size: larger;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
 </head>
 <body>
     <div id=navbar>
-		<h3 id=projectVersion>metastrings v2</h3>
+		<div class=contentGroupHeader>metastrings v2</div>
         <ul>
+            <li><a href="#whatis">What is metastrings?</a></li>
             <li><a href="#features">Why metastrings?</a></li>
-            <li><a href="#gettingstarted">Getting Started</a></li>
             <li><a href="#installation">Installation</a></li>
         </ul>
 		
@@ -103,6 +104,61 @@
 
     <div id=contentDiv>
         <div id=pageHeader>metastrings - a NoSQL database</div>
+        <h1><a name=whatis>What is metastrings?</a></h1>
+        <b>metastrings</b> is a .NET class library that extends the functionality of a MySQL database.
+		You create the metastrings schema in your MySQL DB,
+		then configure your .NET application to access that schema,
+		and do database programming using the .NET class library.
+		
+		<br>
+		<br>
+		
+		metastrings powers <a target=_blank href="https://www.balognabeats.com">Balogna Beats</a>, 
+		a web application for creating, sharing, and enjoying drum beats.
+		<a target=_blank href="https://www.balognabeats.com/metastrings.aspx">Here's info</a>
+		on how Balogna Beats use metastrings.
+		
+		<br>
+		<br>
+        
+		To add a row to a table that represents users in the system, you use code like this, 
+		revolving around the Define class and the cxt.Cmd object:
+<pre class="prettyprint lang-cs">
+string userKey = Guid.NewGuid().ToString();
+Define define = new Define() { table = "users", key = userKey };
+define.SetData("email", email);
+define.SetData("name", name);
+define.SetData("logintoken", "");
+define.SetData("blocked", 0);
+await ctxt.Cmd.DefineAsync(define);
+</pre>
+
+		To access data in a metastrings table to get the row IDs and titles from the beats table, you use code like this, 
+		revolving around the Select and Sql classes and the ctxt object:
+<pre class="prettyprint lang-cs">
+Select select =
+    Sql.Parse
+    (
+        "SELECT id, title FROM beats " +
+        "WHERE userid = @userId AND ispublic = @public " +        
+        "ORDER BY title ASC"
+    );
+select.AddParam("@userId", result.id);
+select.AddParam("@public", 1);
+using (var reader = await ctxt.ExecSelectAsync(select))
+{
+    while (await reader.ReadAsync())
+    {
+        var newBeat =
+            new SearchBeat()
+            {
+                id = reader.GetInt64(0),
+                title = reader.GetString(1)
+            };
+        result.beats.Add(newBeat);
+    }
+}
+</pre>		
         <h1><a name=features>Why metastrings?</a></h1>
         <ol>
             <li>Dynamic schema: transparently add new columns and ignore stale columns</li>
@@ -111,20 +167,7 @@
             <li>High productivity application development</li>
         </ol>
 
-        <h1><a name="gettingstarted">Getting Started</a></h1>
-        Check out the
-        <a href="https://github.com/michaelsballoni/metastrings2">metastrings2 Open Source Project</a>
-        on GitHub
-        <br>
-        <br>
-        metastrings is a .NET class library that extends the functionality of a MySQL database.
-        This is a great combination of technologies;
-        add NoSQL dynamic schema and automatic indexing to an awesome SQL database engine,
-        and you've got amazing technology to power your next database project.
-        And programming in metastrings is much easier on the hands than traditional database programming.
-
         <h2><a name="installation">Installation</a></h2>
-		Metastrings is a thin MySQL wrapper, so your goal is to build the software, create the MySQL schema, and integrate with your solutiion
 		<ol>
 			<li>Get the source from <a target=_blank href="https://github.com/michaelsballoni/metastrings2">GitHub</a>.
 			<li>Build the source using Microsoft Visual Studio 2019.
