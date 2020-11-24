@@ -44,18 +44,6 @@ namespace metastrings
                     ctxt.Cmd.DefineAsync(define).Wait();
                     msTrans.Commit();
                 }
-
-                {
-                    GetRequest get = new GetRequest() { table = "apelike" };
-                    get.values = new List<object> { "foo" };
-                    var gotten = ctxt.Cmd.GetAsync(get).Result;
-
-                    Assert.AreEqual(1, gotten.metadata.Count);
-
-                    var result = gotten.metadata[0];
-                    Assert.AreEqual("monkey", result["blet"]);
-                    Assert.AreEqual("else", result["something"]);
-                }
             }
         }
     }

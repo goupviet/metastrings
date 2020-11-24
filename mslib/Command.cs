@@ -1,18 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Text;
-using System.IO;
 
 namespace metastrings
 {
+    /// <summary>
+    /// Command implements the metastrings API.
+    /// Each function takes an input parameters class and returns a response parameters class.
+    /// This stemmed from metastrings v1 which supported a JSON-in / JSON-out standalone application server.
+    /// </summary>
     public class Command
     {
+        /// <summary>
+        /// A Command needs a Context for accessing the MySQL database.
+        /// </summary>
+        /// <param name="ctxt">Object used for accessing the MySQL database</param>
         public Command(Context ctxt)
         {
             Ctxt = ctxt;
         }
 
+        /// <summary>
+        /// Store metadata for multiple keys via the MultiDefine inputs class.
+        /// For working with a single key, use the Define inputs class instead.
+        /// </summary>
+        /// <param name="define">Info about metadata to apply to keys</param>
         public async Task DefineAsync(MultiDefine define)
         {
             var totalTimer = ScopeTiming.StartTiming();
@@ -23,126 +35,122 @@ namespace metastrings
                 if (define.metadata == null || define.metadata.Count == 0)
                     return;
 
-                using (var msTrans = Ctxt.BeginTrans())
+                // values are the primary keys of the items were UPSERT'ing
+                var values = new List<object>(define.metadata.Count);
+                values.AddRange(define.metadata.Keys); 
+
+                bool firstValueIsNumeric = !(values[0] is string);
+                int tableId = await Tables.GetIdAsync(Ctxt, define.table, firstValueIsNumeric).ConfigureAwait(false);
+                TableObj table = await Tables.GetTableAsync(Ctxt, tableId).ConfigureAwait(false);
+
+                // Check that all primary key values match the table's isnumeric
+                foreach (object value in values)
                 {
-                    // values are the primary keys of the items were UPSERT'ing
-                    var values = new List<object>(define.metadata.Count);
-                    values.AddRange(define.metadata.Keys); 
+                    bool valueIsNumeric = !(value is string);
+                    if (table.isNumeric != valueIsNumeric)
+                        throw
+                            new MetaStringsException
+                            (
+                                $"Value numeric does not match table configuration: {define.table}" +
+                                $"\n - table numeric: {table.isNumeric}" +
+                                $"\n - value numeric: {valueIsNumeric} -  {value}"
+                            );
+                }
+                ScopeTiming.RecordScope("MultiDefine.Setup", localTimer);
 
-                    bool firstValueIsNumeric = !(values[0] is string);
-                    int tableId = await Tables.GetIdAsync(Ctxt, define.table, firstValueIsNumeric).ConfigureAwait(false);
-                    TableObj table = await Tables.GetTableAsync(Ctxt, tableId).ConfigureAwait(false);
+                // value => valueid
+                var valueIdCache = new Dictionary<object, long>(values.Count); 
+                foreach (object value in values)
+                    valueIdCache[value] = await Values.GetIdAsync(Ctxt, value).ConfigureAwait(false);
+                ScopeTiming.RecordScope("MultiDefine.Values", localTimer);
 
-                    // Check that all primary key values match the table's isnumeric
-                    foreach (object value in values)
+                // value => itemid
+                var valueIdsItemIdCache = new Dictionary<object, long>(values.Count);
+                foreach (object value in values)
+                {
+                    long itemId = await Items.GetIdAsync(Ctxt, tableId, valueIdCache[value]).ConfigureAwait(false);
+                    valueIdsItemIdCache[value] = itemId;
+                }
+                ScopeTiming.RecordScope("MultiDefine.Items", localTimer);
+
+                // name => nameid
+                var nameIds = new Dictionary<string, int>();
+                foreach (object value in values)
+                {
+                    var metadata = define.metadata[value];
+                    if (metadata == null || metadata.Count == 0)
+                        continue;
+
+                    foreach (var kvp in metadata)
                     {
-                        bool valueIsNumeric = !(value is string);
-                        if (table.isNumeric != valueIsNumeric)
+                        int nameId;
+                        if (!nameIds.TryGetValue(kvp.Key, out nameId))
+                        {
+                            bool isValueNumeric = !(kvp.Value is string);
+                            nameId = await Names.GetIdAsync(Ctxt, tableId, kvp.Key, isValueNumeric).ConfigureAwait(false);
+                            nameIds.Add(kvp.Key, nameId);
+                        }
+                    }
+                }
+                ScopeTiming.RecordScope("MultiDefine.NameIds", localTimer);
+
+                // nameid => nameobj
+                var nameObjs = new Dictionary<int, NameObj>();
+                foreach (int nameId in nameIds.Values)
+                {
+                    NameObj nameObj;
+                    if (!nameObjs.TryGetValue(nameId, out nameObj))
+                    {
+                        nameObj = await Names.GetNameAsync(Ctxt, nameId).ConfigureAwait(false);
+                        nameObjs.Add(nameId, nameObj);
+                    }
+                }
+                ScopeTiming.RecordScope("MultiDefine.NameObjs", localTimer);
+
+                foreach (object value in values)
+                {
+                    var metadata = define.metadata[value];
+                    if (metadata == null || metadata.Count == 0)
+                        continue;
+
+                    // nameid => valueid
+                    var nameValueIds = new Dictionary<int, long>();
+                    foreach (var kvp in metadata)
+                    {
+                        int nameId = nameIds[kvp.Key];
+                        if (kvp.Value == null) // erase value
+                        {
+                            nameValueIds[nameId] = -1;
+                            continue;
+                        }
+
+                        // Type safety
+                        var nameObj = nameObjs[nameId];
+                        bool isValueNumeric = !(kvp.Value is string);
+                        if (isValueNumeric != nameObj.isNumeric)
+                        {
                             throw
                                 new MetaStringsException
                                 (
-                                    $"Value numeric does not match table configuration: {define.table}" +
-                                    $"\n - table numeric: {table.isNumeric}" +
-                                    $"\n - value numeric: {valueIsNumeric} -  {value}"
+                                    $"Data numeric does not match name: {nameObj.name}" +
+                                    $"\n - value is numeric: {isValueNumeric} - {kvp.Value}" +
+                                    $"\n - name is numeric: {nameObj.isNumeric}"
                                 );
-                    }
-                    ScopeTiming.RecordScope("MultiDefine.Setup", localTimer);
-
-                    // value => valueid
-                    var valueIdCache = new Dictionary<object, long>(values.Count); 
-                    foreach (object value in values)
-                        valueIdCache[value] = await Values.GetIdAsync(Ctxt, value).ConfigureAwait(false);
-                    ScopeTiming.RecordScope("MultiDefine.Values", localTimer);
-
-                    // value => itemid
-                    var valueIdsItemIdCache = new Dictionary<object, long>(values.Count);
-                    foreach (object value in values)
-                    {
-                        long itemId = await Items.GetIdAsync(Ctxt, tableId, valueIdCache[value]).ConfigureAwait(false);
-                        valueIdsItemIdCache[value] = itemId;
-                    }
-                    ScopeTiming.RecordScope("MultiDefine.Items", localTimer);
-
-                    // name => nameid
-                    var nameIds = new Dictionary<string, int>();
-                    foreach (object value in values)
-                    {
-                        var metadata = define.metadata[value];
-                        if (metadata == null || metadata.Count == 0)
-                            continue;
-
-                        foreach (var kvp in metadata)
-                        {
-                            int nameId;
-                            if (!nameIds.TryGetValue(kvp.Key, out nameId))
-                            {
-                                bool isValueNumeric = !(kvp.Value is string);
-                                nameId = await Names.GetIdAsync(Ctxt, tableId, kvp.Key, isValueNumeric).ConfigureAwait(false);
-                                nameIds.Add(kvp.Key, nameId);
-                            }
-                        }
-                    }
-                    ScopeTiming.RecordScope("MultiDefine.NameIds", localTimer);
-
-                    // nameid => nameobj
-                    var nameObjs = new Dictionary<int, NameObj>();
-                    foreach (int nameId in nameIds.Values)
-                    {
-                        NameObj nameObj;
-                        if (!nameObjs.TryGetValue(nameId, out nameObj))
-                        {
-                            nameObj = await Names.GetNameAsync(Ctxt, nameId).ConfigureAwait(false);
-                            nameObjs.Add(nameId, nameObj);
-                        }
-                    }
-                    ScopeTiming.RecordScope("MultiDefine.NameObjs", localTimer);
-
-                    foreach (object value in values)
-                    {
-                        var metadata = define.metadata[value];
-                        if (metadata == null || metadata.Count == 0)
-                            continue;
-
-                        // nameid => valueid
-                        var nameValueIds = new Dictionary<int, long>();
-                        foreach (var kvp in metadata)
-                        {
-                            int nameId = nameIds[kvp.Key];
-                            if (kvp.Value == null) // erase value
-                            {
-                                nameValueIds[nameId] = -1;
-                                continue;
-                            }
-
-                            // Type safety
-                            var nameObj = nameObjs[nameId];
-                            bool isValueNumeric = !(kvp.Value is string);
-                            if (isValueNumeric != nameObj.isNumeric)
-                            {
-                                throw
-                                    new MetaStringsException
-                                    (
-                                        $"Data numeric does not match name: {nameObj.name}" +
-                                        $"\n - value is numeric: {isValueNumeric} - {kvp.Value}" +
-                                        $"\n - name is numeric: {nameObj.isNumeric}"
-                                    );
-                            }
-
-                            long valueId;
-                            if (!valueIdCache.TryGetValue(kvp.Value, out valueId))
-                            {
-                                valueId = await Values.GetIdAsync(Ctxt, kvp.Value).ConfigureAwait(false);
-                                valueIdCache[kvp.Value] = valueId;
-                            }
-
-                            nameValueIds[nameId] = valueId;
                         }
 
-                        Items.SetItemData(Ctxt, valueIdsItemIdCache[value], nameValueIds);
+                        long valueId;
+                        if (!valueIdCache.TryGetValue(kvp.Value, out valueId))
+                        {
+                            valueId = await Values.GetIdAsync(Ctxt, kvp.Value).ConfigureAwait(false);
+                            valueIdCache[kvp.Value] = valueId;
+                        }
+
+                        nameValueIds[nameId] = valueId;
                     }
-                    msTrans.Commit();
-                    ScopeTiming.RecordScope("MultiDefine.Metadata", localTimer);
+
+                    Items.SetItemData(Ctxt, valueIdsItemIdCache[value], nameValueIds);
                 }
+                ScopeTiming.RecordScope("MultiDefine.Metadata", localTimer);
 
                 await Ctxt.ProcessPostOpsAsync().ConfigureAwait(false);
                 ScopeTiming.RecordScope("MultiDefine.PostOps", localTimer);
@@ -151,7 +159,6 @@ namespace metastrings
             catch
             {
                 Ctxt.ClearPostOps();
-                NameValues.ClearCaches();
                 throw;
             }
 #endif
@@ -161,6 +168,12 @@ namespace metastrings
             }
         }
 
+        /// <summary>
+        /// Store metadata for a singl keys via the Define inputs class.
+        /// For working with a multiple keys, use the MultiDefine inputs class instead.
+        /// </summary>
+        /// <param name="define">Info about metadata to apply to the key</param>
+        /// <returns></returns>
         public async Task DefineAsync(Define define)
         {
             var totalTimer = ScopeTiming.StartTiming();
@@ -171,48 +184,44 @@ namespace metastrings
                 if (define.metadata == null || define.metadata.Count == 0)
                     return;
 
-                using (var msTrans = Ctxt.BeginTrans())
+                bool isKeyNumeric = !(define.key is string);
+                int tableId = await Tables.GetIdAsync(Ctxt, define.table, isKeyNumeric).ConfigureAwait(false);
+                // FORNOW
+                //TableObj table = await Tables.GetTableAsync(Ctxt, tableId).ConfigureAwait(false);
+                long valueId = await Values.GetIdAsync(Ctxt, define.key).ConfigureAwait(false);
+                long itemId = await Items.GetIdAsync(Ctxt, tableId, valueId).ConfigureAwait(false);
+                ScopeTiming.RecordScope("Define.Setup", localTimer);
+
+                // name => nameid
+                var nameValueIds = new Dictionary<int, long>();
+                foreach (var kvp in define.metadata)
                 {
-                    bool isKeyNumeric = !(define.key is string);
-                    int tableId = await Tables.GetIdAsync(Ctxt, define.table, isKeyNumeric).ConfigureAwait(false);
-                    // FORNOW
-                    //TableObj table = await Tables.GetTableAsync(Ctxt, tableId).ConfigureAwait(false);
-                    long valueId = await Values.GetIdAsync(Ctxt, define.key).ConfigureAwait(false);
-                    long itemId = await Items.GetIdAsync(Ctxt, tableId, valueId).ConfigureAwait(false);
-                    ScopeTiming.RecordScope("Define.Setup", localTimer);
-
-                    // name => nameid
-                    var nameValueIds = new Dictionary<int, long>();
-                    foreach (var kvp in define.metadata)
+                    bool isMetadataNumeric = !(kvp.Value is string);
+                    int nameId = await Names.GetIdAsync(Ctxt, tableId, kvp.Key, isMetadataNumeric).ConfigureAwait(false);
+                    if (kvp.Value == null) // erase value
                     {
-                        bool isMetadataNumeric = !(kvp.Value is string);
-                        int nameId = await Names.GetIdAsync(Ctxt, tableId, kvp.Key, isMetadataNumeric).ConfigureAwait(false);
-                        if (kvp.Value == null) // erase value
-                        {
-                            nameValueIds[nameId] = -1;
-                            continue;
-                        }
-                        bool isNameNumeric = await Names.GetNameIsNumericAsync(Ctxt, nameId).ConfigureAwait(false);
-                        bool isValueNumeric = !(kvp.Value is string);
-                        if (isValueNumeric != isNameNumeric)
-                        {
-                            throw
-                                new MetaStringsException
-                                (
-                                    $"Data numeric does not match name: {kvp.Key}" +
-                                    $"\n - value is numeric: {isValueNumeric} - {kvp.Value}" +
-                                    $"\n - name is numeric: {isNameNumeric}"
-                                );
-                        }
-                        nameValueIds[nameId] =
-                            await Values.GetIdAsync(Ctxt, kvp.Value).ConfigureAwait(false);
+                        nameValueIds[nameId] = -1;
+                        continue;
                     }
-                    ScopeTiming.RecordScope("Define.NameIds", localTimer);
-
-                    Items.SetItemData(Ctxt, itemId, nameValueIds);
-                    msTrans.Commit();
-                    ScopeTiming.RecordScope("Define.ItemsCommit", localTimer);
+                    bool isNameNumeric = await Names.GetNameIsNumericAsync(Ctxt, nameId).ConfigureAwait(false);
+                    bool isValueNumeric = !(kvp.Value is string);
+                    if (isValueNumeric != isNameNumeric)
+                    {
+                        throw
+                            new MetaStringsException
+                            (
+                                $"Data numeric does not match name: {kvp.Key}" +
+                                $"\n - value is numeric: {isValueNumeric} - {kvp.Value}" +
+                                $"\n - name is numeric: {isNameNumeric}"
+                            );
+                    }
+                    nameValueIds[nameId] =
+                        await Values.GetIdAsync(Ctxt, kvp.Value).ConfigureAwait(false);
                 }
+                ScopeTiming.RecordScope("Define.NameIds", localTimer);
+
+                Items.SetItemData(Ctxt, itemId, nameValueIds);
+                ScopeTiming.RecordScope("Define.ItemsCommit", localTimer);
 
                 await Ctxt.ProcessPostOpsAsync().ConfigureAwait(false);
                 ScopeTiming.RecordScope("Define.PostOps", localTimer);
@@ -221,7 +230,6 @@ namespace metastrings
             catch
             {
                 Ctxt.ClearPostOps();
-                NameValues.ClearCaches();
                 throw;
             }
 #endif
@@ -231,6 +239,12 @@ namespace metastrings
             }
         }
 
+        /// <summary>
+        /// Generate the MySQL SQL query given a metastring Select object
+        /// This is where the metastrings -> MySQL magic happens
+        /// </summary>
+        /// <param name="query">metastrings query</param>
+        /// <returns>MySQL query</returns>
         public async Task<string> GenerateSqlAsync(Select query)
         {
             var totalTimer = ScopeTiming.StartTiming();
@@ -245,6 +259,12 @@ namespace metastrings
             }
         }
 
+        /// <summary>
+        /// Get a DB reader for a query.
+        /// This uses the parameters internal to the query object.
+        /// </summary>
+        /// <param name="query">metastrings query object</param>
+        /// <returns>Reader for enumerating result rows</returns>
         public async Task<Reader> GetReaderAsync(Select query)
         {
             var totalTimer = ScopeTiming.StartTiming();
@@ -255,10 +275,17 @@ namespace metastrings
             }
             finally
             {
-                ScopeTiming.RecordScope("Cmd.GenerateSql(query)", totalTimer);
+                ScopeTiming.RecordScope("Cmd.GetReaderAsync(query)", totalTimer);
             }
         }
 
+        /// <summary>
+        /// Get a DB reader for a MySQL query.
+        /// This uses the supplied parameters.
+        /// </summary>
+        /// <param name="sql">MySQL query</param>
+        /// <param name="cmdParams">Parameters for the query</param>
+        /// <returns></returns>
         public async Task<Reader> GetReaderAsync(string sql, Dictionary<string, object> cmdParams)
         {
             var totalTimer = ScopeTiming.StartTiming();
@@ -268,96 +295,37 @@ namespace metastrings
             }
             finally
             {
-                ScopeTiming.RecordScope("Cmd.GenerateSql(sql)", totalTimer);
+                ScopeTiming.RecordScope("Cmd.GetReaderAsync(sql)", totalTimer);
             }
         }
 
-        public async Task<GetResponse> GetAsync(GetRequest request)
+        /// <summary>
+        /// Delete a single item from a table
+        /// </summary>
+        /// <param name="table">Table to delete from</param>
+        /// <param name="value">Value of object to delete</param>
+        /// <returns></returns>
+        public async Task DeleteAsync(string table, object value)
         {
-            var totalTimer = ScopeTiming.StartTiming();
-            try
-            {
-                var responses = new List<Dictionary<string, object>>(request.values.Count);
-
-                int tableId = await Tables.GetIdAsync(Ctxt, request.table, noCreate: true).ConfigureAwait(false);
-                foreach (var value in request.values)
-                {
-                    long valueId = await Values.GetIdAsync(Ctxt, value).ConfigureAwait(false);
-
-                    long itemId = await Items.GetIdAsync(Ctxt, tableId, valueId, noCreate: true).ConfigureAwait(false);
-                    if (itemId < 0)
-                    {
-                        responses.Add(null);
-                        continue;
-                    }
-
-                    var metaIds = await Items.GetItemDataAsync(Ctxt, itemId).ConfigureAwait(false);
-                    var metaStrings = await NameValues.GetMetadataValuesAsync(Ctxt, metaIds).ConfigureAwait(false);
-
-                    responses.Add(metaStrings);
-                }
-
-                GetResponse response = new GetResponse() { metadata = responses };
-                return response;
-            }
-            finally
-            {
-                ScopeTiming.RecordScope("Cmd.Get", totalTimer);
-            }
+            await DeleteAsync(table, new[] { value }).ConfigureAwait(false);
         }
 
-        public async Task<GetResponse> QueryGetAsync(QueryGetRequest request)
+        /// <summary>
+        /// Delete multiple items from a table
+        /// </summary>
+        /// <param name="table">Table to delete from</param>
+        /// <param name="values">Valuesof objects to delete</param>
+        /// <returns></returns>
+        public async Task DeleteAsync(string table, IEnumerable<object> values)
         {
-            var totalTimer = ScopeTiming.StartTiming();
-            try
-            {
-                var itemValues = new Dictionary<long, object>();
-                {
-                    Select select = new Select();
-                    select.select = new List<string> { "id", "value" };
-                    select.from = request.from;
-                    select.where = request.where;
-                    select.orderBy = request.orderBy;
-                    select.limit = request.limit;
-                    select.cmdParams = request.cmdParams;
-                    using (var reader = await GetReaderAsync(select).ConfigureAwait(false))
-                    {
-                        while (await reader.ReadAsync().ConfigureAwait(false))
-                            itemValues.Add(reader.GetInt64(0), reader.GetObject(1));
-                    }
-                }
-
-                var responses = new List<Dictionary<string, object>>(itemValues.Count);
-                foreach (var itemId in itemValues.Keys)
-                {
-                    var metaIds = await Items.GetItemDataAsync(Ctxt, itemId).ConfigureAwait(false);
-                    var metaStrings = await NameValues.GetMetadataValuesAsync(Ctxt, metaIds).ConfigureAwait(false);
-                    
-                    metaStrings["id"] = (double)itemId;
-                    metaStrings["value"] = itemValues[itemId];
-                    
-                    responses.Add(metaStrings);
-                }
-
-                GetResponse response = new GetResponse() { metadata = responses };
-                return response;
-            }
-            finally
-            {
-                ScopeTiming.RecordScope("Cmd.QueryGet", totalTimer);
-            }
+            await DeleteAsync(new Delete() { table = table, values = new List<object>(values) }).ConfigureAwait(false);
         }
 
-        public async Task DeleteAsync(string table, object id)
-        {
-            await DeleteAsync(table, new[] { id }).ConfigureAwait(false);
-        }
-
-        public async Task DeleteAsync(string table, IEnumerable<object> ids)
-        {
-            await DeleteAsync(new Delete() { table = table, values = new List<object>(ids) }).ConfigureAwait(false);
-        }
-
+        /// <summary>
+        /// Process a delete request
+        /// </summary>
+        /// <param name="toDelete">Delete reqeuest object</param>
+        /// <returns></returns>
         public async Task DeleteAsync(Delete toDelete)
         {
             var totalTimer = ScopeTiming.StartTiming();
@@ -382,6 +350,11 @@ namespace metastrings
             }
         }
 
+        /// <summary>
+        /// Drop a table from the metastrings schema
+        /// </summary>
+        /// <param name="drop">Drop request object</param>
+        /// <returns></returns>
         public async Task DropAsync(Drop drop)
         {
             var totalTimer = ScopeTiming.StartTiming();
@@ -406,6 +379,10 @@ namespace metastrings
             }
         }
 
+        /// <summary>
+        /// Reset the metastrings world
+        /// </summary>
+        /// <param name="reset">Reset request object</param>
         public void Reset(Reset reset)
         {
             if (reset.includeNameValues)
@@ -416,6 +393,11 @@ namespace metastrings
             NameValues.ClearCaches();
         }
 
+        /// <summary>
+        /// Get the schema of a metastrings database
+        /// </summary>
+        /// <param name="schema">Schema request object</param>
+        /// <returns></returns>
         public async Task<SchemaResponse> GetSchemaAsync(Schema schema)
         {
             string sql =
@@ -452,22 +434,41 @@ namespace metastrings
             return response;
         }
 
+        /// <summary>
+        /// Explicitly create a schema.
+        /// This is usually unnecessary as tables are created as referred to.
+        /// </summary>
+        /// <param name="create">Table create request</param>
+        /// <returns></returns>
         public async Task CreateTableAsync(TableCreate create)
         {
             await Tables.GetIdAsync(Ctxt, create.table, create.isNumeric).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Put a long strings into the database
+        /// </summary>
+        /// <param name="put">String put request</param>
         public async Task PutLongStringAsync(LongStringPut put)
         {
             await LongStrings.StoreStringAsync(Ctxt, put.itemId, put.fieldName, put.longString).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Get a long string from the database
+        /// </summary>
+        /// <param name="get">String get request</param>
+        /// <returns>Long string value, or null if not found</returns>
         public async Task<string> GetLongStringAsync(LongStringGet get)
         {
             string longString = await LongStrings.GetStringAsync(Ctxt, get.itemId, get.fieldName, get.like).ConfigureAwait(false);
             return longString;
         }
 
+        /// <summary>
+        /// Remove a long strings from the database
+        /// </summary>
+        /// <param name="del">String deletion request</param>
         public async Task DeleteLongStringAsync(LongStringOp del)
         {
             await LongStrings.DeleteStringAsync(Ctxt, del.itemId, del.fieldName).ConfigureAwait(false);

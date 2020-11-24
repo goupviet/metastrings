@@ -62,12 +62,6 @@ namespace metastrings
         }
     }
 
-    public class GetRequest
-    {
-        public string table { get; set; }
-        public List<object> values { get; set; }
-    }
-
     public class Criteria // WHERE
     {
         public string name { get; set; }
@@ -113,8 +107,10 @@ namespace metastrings
         public bool descending { get; set; }
     }
 
-    public class QueryGetRequest
+    public class Select
     {
+        public List<string> select { get; set; }
+
         public string from { get; set; } // FROM
         public List<CriteriaSet> where { get; set; }
         public List<Order> orderBy { get; set; }
@@ -137,16 +133,6 @@ namespace metastrings
         }
     }
 
-    public class Select : QueryGetRequest
-    {
-        public List<string> select { get; set; }
-    }
-
-    public class GetResponse
-    {
-        public List<Dictionary<string, object>> metadata { get; set; }
-    }
-
     public class Delete
     {
         public string table { get; set; }
@@ -167,11 +153,6 @@ namespace metastrings
     public class Reset
     {
         public bool includeNameValues { get; set; }
-    }
-
-    public class Timing
-    {
-        public bool reset { get; set; }
     }
 
     public class Schema
@@ -208,12 +189,5 @@ namespace metastrings
     public class LongStringPut : LongStringOp
     {
         public string longString { get; set; }
-    }
-
-    public class LongStringQuery
-    {
-        public string table { get; set; }
-        public string fieldName { get; set; }
-        public string query { get; set; }
     }
 }

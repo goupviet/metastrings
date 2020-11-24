@@ -37,14 +37,6 @@ namespace metastrings
             Assert.IsTrue(dict.ContainsKey("foo"));
             Assert.IsTrue(dict.ContainsKey("bar"));
             Assert.IsTrue(!dict.ContainsKey("blet"));
-
-            string json = Utils.Serialize(dict);
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(json));
-
-            var dictBack = Utils.Deserialize<ListDictionary<string, int>>(json);
-            Assert.AreEqual(dict.Count, dictBack.Count);
-            Assert.AreEqual(dict["foo"], dictBack["foo"]);
-            Assert.AreEqual(dict["bar"], dictBack["bar"]);
         }
     }
 }

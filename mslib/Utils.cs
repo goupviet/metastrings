@@ -11,122 +11,16 @@ using Newtonsoft.Json;
 
 namespace metastrings
 {
+    /// <summary>
+    /// Utility functions for implementing metastrings
+    /// </summary>
     public static class Utils
     {
-        public static string HashString(string input)
-        {
-            StringBuilder sb = new StringBuilder(64);
-            using (var hasher = SHA256.Create())
-            {
-                byte[] hashBytes = hasher.ComputeHash(Encoding.Unicode.GetBytes(input));
-                for (int i = 0; i < hashBytes.Length; i++)
-                    sb.Append(hashBytes[i].ToString("x2"));
-            }
-            return sb.ToString();
-        }
-
-        public static T Deserialize<T>(string str)
-        {
-            using (TextReader txtReader = new StringReader(str))
-            using (JsonReader jsReader = new JsonTextReader(txtReader))
-                return sm_jsonSerializer.Deserialize<T>(jsReader);
-        }
-
-        public static string Serialize(object obj)
-        {
-            StringBuilder sb = new StringBuilder();
-            using (TextWriter txtWriter = new StringWriter(sb))
-                sm_jsonSerializer.Serialize(txtWriter, obj);
-            return sb.ToString();
-        }
-
-        public static List<string> BatchUp(IEnumerable<string> pieces, int batchSize)
-        {
-            if (batchSize <= 0)
-                throw new ArgumentException("batchSize must be > 0");
-
-            var retVal = new List<string>();
-
-            StringBuilder sb = new StringBuilder(batchSize);
-            foreach (string str in pieces)
-            {
-                if (str.Length + sb.Length > batchSize)
-                {
-                    retVal.Add(sb.ToString());
-                    sb.Clear();
-                }
-
-                sb.Append(str);
-            }
-
-            if (sb.Length > 0)
-                retVal.Add(sb.ToString());
-
-            return retVal;
-        }
-
-        public static List<List<T>> SplitUp<T>(IEnumerable<T> items, int batches)
-        {
-            if (batches == 0)
-                batches = 1;
-
-            if (batches <= 0)
-                throw new ArgumentException("batches must be > 0");
-
-            List<List<T>> retVal = new List<List<T>>(batches);
-
-            if (batches == 1)
-            {
-                retVal.Add(new List<T>(items));
-                return retVal;
-            }
-
-            int itemCount = items.Count();
-            int batchSize = (int)Math.Round((double)itemCount / batches); // last batch can be fat
-
-            for (int b = 0; b < batches; ++b)
-            {
-                var newList = new List<T>(batchSize);
-                retVal.Add(newList);
-            }
-
-            int listIndex = 0;
-            foreach (T t in items)
-            {
-                var curList = retVal[listIndex];
-                curList.Add(t);
-
-                if (curList.Count >= batchSize && listIndex != retVal.Count - 1)
-                    ++listIndex;
-            }
-
-            return retVal;
-        }
-
-        public static Exception HandleException(Exception exp)
-        {
-            WebException webExp = null;
-            if (exp is WebException)
-                webExp = (WebException)exp;
-
-            if (webExp == null || webExp.Response == null)
-            {
-                var innerExp = exp;
-                while (innerExp.InnerException != null)
-                    innerExp = innerExp.InnerException;
-
-                string errorType = webExp == null ? "General" : "Network";
-                return new MetaStringsException($"{errorType} Error: {innerExp.GetType().FullName}: {innerExp.Message}");
-            }
-
-            string responseString;
-            using (var responseStream = webExp.Response.GetResponseStream())
-            using (var sr = new StreamReader(responseStream, Encoding.UTF8))
-                responseString = sr.ReadToEnd(); // can't do async in an exp handler
-
-            return new MetaStringsException($"Server Error: {webExp.Status}: {responseString}");
-        }
-
+        /// <summary>
+        /// Convert a result from an Exec(ute)Scalar... call into a 64-bit integer
+        /// </summary>
+        /// <param name="obj">Return value from Exec(ute)Scalar to process</param>
+        /// <returns>64-bit integer if obj processed, otherwise -1</returns>
         public static long ConvertDbInt64(object obj)
         {
             if (obj == null || obj == DBNull.Value)
@@ -135,6 +29,11 @@ namespace metastrings
                 return Convert.ToInt64(obj);
         }
 
+        /// <summary>
+        /// Convert a result from an Exec(ute)Scalar... call into a 32-bit integer
+        /// </summary>
+        /// <param name="obj">Return value from Exec(ute)Scalar to process</param>
+        /// <returns>32-bit integer if obj processed, otherwise -1</returns>
         public static int ConvertDbInt32(object obj)
         {
             if (obj == null || obj == DBNull.Value)
@@ -143,39 +42,11 @@ namespace metastrings
                 return Convert.ToInt32(obj);
         }
 
-        public static List<string> BreakPathIntoWords(string path)
-        {
-            List<string> retVal = new List<string>();
-            string[] parts = 
-                path.Split(new[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
-
-            string curWord = "";
-            foreach (string part in parts)
-            {
-                foreach (char c in part)
-                {
-                    if (char.IsLetter(c))
-                    {
-                        curWord += c;
-                    }
-                    else
-                    { 
-                        if (curWord != "")
-                            retVal.Add(curWord);
-                        curWord = "";
-                    }
-                }
-
-                if (curWord != "")
-                    retVal.Add(curWord);
-                curWord = "";
-            }
-
-            if (curWord != "")
-                retVal.Add(curWord);
-            return retVal;
-        }
-
+        /// <summary>
+        /// Turn a SQL statement into tokens
+        /// </summary>
+        /// <param name="sql">SQL statement to tokenize</param>
+        /// <returns>parsed tokens</returns>
         public static string[] Tokenize(string sql)
         {
             string[] tokens = 
@@ -228,6 +99,11 @@ namespace metastrings
             return paramNames;
         }
 
+        /// <summary>
+        /// Make a name usable as a table or column alias
+        /// </summary>
+        /// <param name="name">Name to cleanse</param>
+        /// <returns>Name of just numbers and letters, or just 'a'</returns>
         public static string CleanName(string name) // used for table and column aliases
         {
             string clean = "";
@@ -243,6 +119,9 @@ namespace metastrings
             return clean;
         }
 
+        /// <summary>
+        /// Can a value be used for a Name or Table name?
+        /// </summary>
         public static bool IsWord(string word)
         {
             if (string.IsNullOrWhiteSpace(word))
@@ -251,11 +130,9 @@ namespace metastrings
                 return IsWordRegEx.IsMatch(word) && !word.EndsWith("_", StringComparison.Ordinal);
         }
 
-        public static string MakeSafeWord(string word)
-        {
-            return word.Replace(' ', '_');
-        }
-
+        /// <summary>
+        /// Can a value be used for the name of a parameter for a SQL query?
+        /// </summary>
         public static bool IsParam(string param)
         {
             if (string.IsNullOrWhiteSpace(param))
@@ -264,42 +141,65 @@ namespace metastrings
                 return IsParamRegEx.IsMatch(param) && !param.EndsWith("_", StringComparison.Ordinal);
         }
 
+        /// <summary>
+        /// Is a name something used internally by metastrings?
+        /// </summary>
         public static bool IsNameReserved(string name)
         {
             return ReservedWords.Contains(name.ToLower());
         }
 
+        /// <summary>
+        /// Ensure a table name is valid in a SQL query
+        /// </summary>
+        /// <param name="table">Table name to validate</param>
+        /// <param name="sql">SQL query the table name appears in</param>
         public static void ValidateTableName(string table, string sql)
         {
             if (!Utils.IsWord(table))
                 throw new SqlException($"Invalid table name: {table}", sql);
         }
 
+        /// <summary>
+        /// Ensure a column name is valid in a SQL query
+        /// </summary>
+        /// <param name="col">Column name to validate</param>
+        /// <param name="sql">SQL query the column name appears in</param>
         public static void ValidateColumnName(string col, string sql)
         {
             if (!Utils.IsWord(col))
                 throw new SqlException($"Invalid column name: {col}", sql);
         }
 
+        /// <summary>
+        /// Ensure a parameter name is valid in a SQL query
+        /// </summary>
+        /// <param name="param">Parameter name to validate</param>
+        /// <param name="sql">SQL query the parameter name appears in</param>
         public static void ValidateParameterName(string parm, string sql)
         {
             if (!Utils.IsParam(parm))
                 throw new SqlException($"Invalid parameter name: {parm}", sql);
         }
 
+        /// <summary>
+        /// Ensure an operator name is valid in a SQL query
+        /// </summary>
+        /// <param name="op">Operator to validate</param>
+        /// <param name="sql">SQL query the operator name appears in</param>
         public static void ValidateOperator(string op, string sql)
         {
             if (!QueryOps.Contains(op.ToLower()))
                 throw new SqlException($"Invalid query operator: {op}", sql);
         }
 
-        public const string WordPattern = "^[a-zA-Z](\\w)*$";
+        private const string WordPattern = "^[a-zA-Z](\\w)*$";
         private static Regex IsWordRegEx = new Regex(WordPattern, RegexOptions.Compiled);
 
-        public const string ParamPattern = "^\\@[a-zA-Z](\\w)*$";
+        private const string ParamPattern = "^\\@[a-zA-Z](\\w)*$";
         private static Regex IsParamRegEx = new Regex(ParamPattern, RegexOptions.Compiled);
 
-        public static HashSet<string> QueryOps =
+        private static HashSet<string> QueryOps =
             new HashSet<string>
             {
                 "=", "<>", ">", ">=", "<", "<=",
@@ -307,7 +207,7 @@ namespace metastrings
                 "like"
             };
 
-        public static HashSet<string> ReservedWords =
+        private static HashSet<string> ReservedWords =
             new HashSet<string> 
             { 
                 "select",
@@ -321,7 +221,5 @@ namespace metastrings
                 "lastmodified",
                 "relevance"
             };
-
-        private static JsonSerializer sm_jsonSerializer = new JsonSerializer();
     }
 }

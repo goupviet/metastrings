@@ -58,76 +58,6 @@ namespace metastrings
         }
 
         [TestMethod]
-        public void TestHashString()
-        {
-            string hash0 = Utils.HashString("");
-            Assert.AreEqual(64, hash0.Length);
-
-            string hash1 = Utils.HashString("b");
-            Assert.AreEqual(64, hash1.Length);
-            Assert.AreNotEqual(hash0, hash1);
-
-            string hash2 = Utils.HashString("metastrings rocks!");
-            Assert.AreEqual(64, hash2.Length);
-            Assert.AreNotEqual(hash0, hash2);
-            Assert.AreNotEqual(hash1, hash2);
-
-            string hash3 = Utils.HashString("metastrings rocks!");
-            Assert.AreEqual(64, hash3.Length);
-            Assert.AreNotEqual(hash0, hash3);
-            Assert.AreNotEqual(hash1, hash3);
-            Assert.AreEqual(hash2, hash3);
-        }
-
-        [TestMethod]
-        public void TestSerialize()
-        {
-            TestSerializeType input = new TestSerializeType() { foo = 1492, bar = "blet" };
-            string str = Utils.Serialize(input);
-
-            TestSerializeType output = Utils.Deserialize<TestSerializeType>(str);
-            Assert.AreEqual(1492, output.foo);
-            Assert.AreEqual("blet", output.bar);
-        }
-
-        [TestMethod]
-        public void TestBatchUp()
-        {
-            var batches = Utils.BatchUp(new[] { "foo", "bar", "blet", "monk" }, 6);
-            Assert.AreEqual(3, batches.Count);
-            Assert.AreEqual("foobar", batches[0]);
-            Assert.AreEqual("blet", batches[1]);
-            Assert.AreEqual("monk", batches[2]);
-        }
-
-        [TestMethod]
-        public void TestSplitUp()
-        {
-            {
-                var splits = Utils.SplitUp(new List<int>(), 10);
-                Assert.AreEqual(10, splits.Count);
-            }
-
-            {
-                var splits = Utils.SplitUp(new List<int>{ 1, 2, 3, 4, 5 }, 3);
-
-                Assert.AreEqual(3, splits.Count);
-
-                Assert.AreEqual(2, splits[0].Count);
-                Assert.AreEqual(2, splits[1].Count);
-                Assert.AreEqual(1, splits[2].Count);
-
-                Assert.AreEqual(1, splits[0][0]);
-                Assert.AreEqual(2, splits[0][1]);
-
-                Assert.AreEqual(3, splits[1][0]);
-                Assert.AreEqual(4, splits[1][1]);
-
-                Assert.AreEqual(5, splits[2][0]);
-            }
-        }
-
-        [TestMethod]
         public void TestDnConverts()
         {
             Assert.AreEqual(-1, Utils.ConvertDbInt32(null));
@@ -143,14 +73,6 @@ namespace metastrings
             Assert.AreEqual(0, Utils.ConvertDbInt64(0));
             Assert.AreEqual(1, Utils.ConvertDbInt64("1"));
             Assert.AreEqual(1, Utils.ConvertDbInt64(1));
-        }
-
-        [TestMethod]
-        public void TestUtils()
-        {
-            var words = Utils.BreakPathIntoWords("C:\\foobar\\blet-monkey\\something.jpg");
-            string wordsJoined = string.Join(",", words);
-            Assert.AreEqual("C,foobar,blet,monkey,something,jpg", wordsJoined);
         }
 
         [TestMethod]

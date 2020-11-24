@@ -29,10 +29,10 @@ namespace metastrings
                 return id;
 
             if (!Utils.IsWord(name))
-                throw new MetaStringsException($"Types.GetId name is not valid: {name} - {Utils.WordPattern}");
+                throw new MetaStringsException($"Types.GetId name is not valid: {name}");
 
             if (Utils.IsNameReserved(name))
-                throw new MetaStringsException($"Types.GetId name is reserved: {name} - {string.Join(", ", Utils.ReservedWords)}");
+                throw new MetaStringsException($"Types.GetId name is reserved: {name}");
 
             Exception lastExp = null;
             bool isExpFinal = false;

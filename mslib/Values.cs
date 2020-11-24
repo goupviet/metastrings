@@ -6,8 +6,19 @@ using System.Linq;
 
 namespace metastrings
 {
+    /// <summary>
+    /// metastrings implemetation for tracking the row data in metastrings tables
+    /// Values can either be strings or floating-point numbers
+    /// This class takes the form of Names and Tables, where you take what you know, in this case a value,
+    /// and you get back what you want, the ID of the value's row in the bvalues MySQL table,
+    /// or you have a MySQL table row ID, and you want to the value back out
+    /// </summary>
     public static class Values
     {
+        /// <summary>
+        /// Return this to the factory original
+        /// </summary>
+        /// <param name="ctxt">Object for interacting with the database</param>
         public static void Reset(Context ctxt)
         {
             sm_cache.Clear();
@@ -16,6 +27,16 @@ namespace metastrings
             ctxt.Db.ExecuteSql("DELETE FROM bvalues");
         }
 
+        /// <summary>
+        /// Given a value, get the row ID in the MySQL bvalues table.
+        /// Note that there's caching 
+        /// </summary>
+        /// <param name="ctxt">Object for interacting with the database</param>
+        /// <param name="value">
+        /// Could be anything, but it's a either a string, or it better be convertible to a double
+        /// Note that row IDs are cached, but only for strings or for numbers that are essentially integral
+        /// </param>
+        /// <returns>row ID in MySQL table</returns>
         public static async Task<long> GetIdAsync(Context ctxt, object value)
         {
             var totalTimer = ScopeTiming.StartTiming();
@@ -120,6 +141,12 @@ namespace metastrings
             }
         }
 
+        /// <summary>
+        /// Given a row ID in the MySQL bvalues table, get out the value
+        /// </summary>
+        /// <param name="ctxt">Object for interacting with the database</param>
+        /// <param name="id">row ID in the MySQL bvalues table</param>
+        /// <returns></returns>
         public static async Task<object> GetValueAsync(Context ctxt, long id)
         {
             var totalTimer = ScopeTiming.StartTiming();
@@ -150,6 +177,12 @@ namespace metastrings
             }
         }
 
+        /// <summary>
+        /// Pre-cache all values in given a set of MySQL table bvalues row IDs
+        /// </summary>
+        /// <param name="ctxt">Object for interacting with the database</param>
+        /// <param name="ids">MySQL table bvalues row IDs</param>
+        /// <returns></returns>
         public static async Task CacheValuesAsync(Context ctxt, IEnumerable<long> ids)
         {
             var totalTimer = ScopeTiming.StartTiming();
@@ -188,13 +221,16 @@ namespace metastrings
             }
         }
 
+        /// <summary>
+        /// Empty out the caches.
+        /// </summary>
         public static void ClearCaches()
         {
             sm_cache.Clear();
             sm_cacheBack.Clear();
         }
 
-        public static int MaxStringLength = 255;
+        public const int MaxStringLength = 255;
 
         private static ConcurrentDictionary<object, long> sm_cache = new ConcurrentDictionary<object, long>();
         private static ConcurrentDictionary<long, object> sm_cacheBack = new ConcurrentDictionary<long, object>();
