@@ -1,5 +1,0 @@
-Finish code documentation
-	Finished up to ErrorLog
-Reconsider input/output-class style of Command
-	there's not much left in Command, clean it up
-Revisit calls to Delete
