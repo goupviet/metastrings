@@ -6,6 +6,11 @@ using System.Data;
 
 namespace metastrings
 {
+    /// <summary>
+    /// Generic database type
+    /// Was useful when metastrings worked with MySQL and SqLite
+    /// Left here in case another engine swaps MySQL out, like Posgres
+    /// </summary>
     public interface IDb : IDisposable
     {
         MsTrans BeginTrans(IsolationLevel level = IsolationLevel.Unspecified);
@@ -15,9 +20,6 @@ namespace metastrings
 
         string InsertIgnore { get; }
         string UtcTimestampFunction { get; }
-
-        void Lock(string tableName);
-        void Unlock();
 
         int ExecuteSql(string sql, Dictionary<string, object> cmdParams = null);
         Task<int> ExecuteSqlAsync(string sql, Dictionary<string, object> cmdParams = null);

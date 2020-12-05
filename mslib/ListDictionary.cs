@@ -6,6 +6,11 @@ using Newtonsoft.Json;
 
 namespace metastrings
 {
+    /// <summary>
+    /// A hybrid class, Dictionary with a List used to track order when added
+    /// </summary>
+    /// <typeparam name="K"></typeparam>
+    /// <typeparam name="V"></typeparam>
     [JsonObject(MemberSerialization.OptIn)]
     public class ListDictionary<K, V>
     {

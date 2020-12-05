@@ -51,15 +51,34 @@ namespace metastrings
     {
         public string table { get; set; }
         public object key { get; set; }
-        public Dictionary<string, object> metadata { get; set; }
+        public Dictionary<string, object> metadata { get; set; } = new Dictionary<string, object>();
+
+        public Define() { }
+
+        public Define(string table, object key)
+        {
+            this.table = table;
+            this.key = key;
+        }
 
         // helper function
-        public void SetData(string metadataName, object metadataValue)
+        public Define SetData(string metadataName, object metadataValue)
         {
-            if (metadata == null)
-                metadata = new Dictionary<string, object>();
             metadata[metadataName] = metadataValue;
+            return this;
         }
+
+        public object this[string name]
+        {
+            get { return metadata[name]; }
+            set { metadata[name] = value; }
+        }
+    }
+
+    public class GetRequest
+    {
+        public string table { get; set; }
+        public List<object> values { get; set; }
     }
 
     public class Criteria // WHERE
@@ -107,10 +126,8 @@ namespace metastrings
         public bool descending { get; set; }
     }
 
-    public class Select
+    public class QueryGetRequest
     {
-        public List<string> select { get; set; }
-
         public string from { get; set; } // FROM
         public List<CriteriaSet> where { get; set; }
         public List<Order> orderBy { get; set; }
@@ -133,15 +150,39 @@ namespace metastrings
         }
     }
 
+    public class Select : QueryGetRequest
+    {
+        public List<string> select { get; set; }
+    }
+
+    public class GetResponse
+    {
+        public List<Dictionary<string, object>> metadata { get; set; }
+    }
+
     public class Delete
     {
         public string table { get; set; }
-        public List<object> values { get; set; }
-        public void AddValue(object value)
+        public List<object> values { get; set; } = new List<object>();
+
+        public Delete() { }
+
+        public Delete(string table, object value)
         {
-            if (values == null)
-                values = new List<object>();
+            this.table = table;
             values.Add(value);
+        }
+
+        public Delete(string table, IEnumerable<object> values)
+        {
+            this.table = table;
+            this.values.AddRange(values);
+        }
+
+        public Delete AddValue(object value)
+        {
+            values.Add(value);
+            return this;
         }
     }
 

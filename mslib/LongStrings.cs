@@ -4,8 +4,19 @@ using System.Collections.Generic;
 
 namespace metastrings
 {
+    /// <summary>
+    /// Manage long strings, keeping them out of the bvalues MySQL table,
+    /// allowing bvalues to have a UNIQUE index, ensuring database integrity
+    /// </summary>
     public static class LongStrings
     {
+        /// <summary>
+        /// Given an item and a name, save a long string.
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="itemId">Item to store the string for</param>
+        /// <param name="name">Name of the string</param>
+        /// <param name="longstring">String value</param>
         public static async Task StoreStringAsync(Context ctxt, long itemId, string name, string longstring)
         {
             if (longstring.Length >= 64 * 1024)
@@ -30,6 +41,14 @@ namespace metastrings
             }
         }
 
+        /// <summary>
+        /// Given an item and a name and optionally a LIKE query, and try to get a long string
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="itemId">The item to look in</param>
+        /// <param name="name">The name to match</param>
+        /// <param name="like">LIKE criteria to match</param>
+        /// <returns>Long string value if found, null otherwise</returns>
         public static async Task<string> GetStringAsync(Context ctxt, long itemId, string name, string like = "")
         {
             var cmdParams =
@@ -39,7 +58,7 @@ namespace metastrings
                     { "@name", name },
                     { "@like", like }
                 };
-            string storeSql = "SELECT longstring FROM longstrings WHERE itemid= @itemid AND name = @name";
+            string storeSql = "SELECT longstring FROM longstrings WHERE itemid = @itemid AND name = @name";
             if (!string.IsNullOrWhiteSpace(like))
                 storeSql += " AND longstring LIKE @like";
             using (var reader = await ctxt.Db.ExecuteReaderAsync(storeSql, cmdParams).ConfigureAwait(false))
@@ -51,6 +70,12 @@ namespace metastrings
             }
         }
 
+        /// <summary>
+        /// Remove a long string for the database
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="itemId">The item</param>
+        /// <param name="name">The name</param>
         public static async Task DeleteStringAsync(Context ctxt, long itemId, string name)
         {
             var cmdParams =

@@ -12,8 +12,15 @@ namespace metastrings
         public bool isNumeric;
     }
 
+    /// <summary>
+    /// metastrings implementation class for the tables in the virtual schema
+    /// </summary>
     public static class Tables
     {
+        /// <summary>
+        /// Remove all tables from the database
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
         public static void Reset(Context ctxt)
         {
             sm_cache.Clear();
@@ -22,6 +29,15 @@ namespace metastrings
             ctxt.Db.ExecuteSql("DELETE FROM tables");
         }
 
+        /// <summary>
+        /// Given a table name, get the row ID for the table
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="name">Table name</param>
+        /// <param name="isNumeric">Is the table's primary key numeric or string</param>
+        /// <param name="noCreate">Should an exception be thrown if no table found</param>
+        /// <param name="noException">Should -1 be returned instead of throwing an exception if the table is not found</param>
+        /// <returns>Database row ID for the table</returns>
         public static async Task<int> GetIdAsync(Context ctxt, string name, bool isNumeric = false, bool noCreate = false, bool noException = false)
         {
             int id;
@@ -78,6 +94,12 @@ namespace metastrings
             throw new MetaStringsException("Tables.GetId fails after a few tries", lastExp);
         }
 
+        /// <summary>
+        /// Get info about the table found by looking up the row ID
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="id">Table database row ID</param>
+        /// <returns></returns>
         public static async Task<TableObj> GetTableAsync(Context ctxt, int id)
         {
             if (id < 0)

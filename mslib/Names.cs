@@ -14,8 +14,15 @@ namespace metastrings
         public bool isNumeric;
     }
 
+    /// <summary>
+    /// metastrings implementation class for the columns in the virtual schema
+    /// </summary>
     public static class Names
     {
+        /// <summary>
+        /// Remove all names rows from the database
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
         public static void Reset(Context ctxt)
         {
             sm_cache.Clear();
@@ -24,6 +31,16 @@ namespace metastrings
             ctxt.Db.ExecuteSql("DELETE FROM names");
         }
 
+        /// <summary>
+        /// Given a column name and value, get back the row ID
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="tableId">What table does this row go into?</param>
+        /// <param name="name">What is the column name?</param>
+        /// <param name="isNumeric">Is this column numeric or string?</param>
+        /// <param name="noCreate">Should the command fail if no existing table matches?</param>
+        /// <param name="noException">Should -1 be returned on error instead of raising exception?</param>
+        /// <returns></returns>
         public static async Task<int> GetIdAsync(Context ctxt, int tableId, string name, bool isNumeric = false, bool noCreate = false, bool noException = false)
         {
             int id;
@@ -87,6 +104,12 @@ namespace metastrings
             throw new MetaStringsException("Names.GetId fails after a few tries", lastExp);
         }
 
+        /// <summary>
+        /// Given a name ID, get info about the name
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="id">Name database row ID</param>
+        /// <returns>Info about the name</returns>
         public static async Task<NameObj> GetNameAsync(Context ctxt, int id)
         {
             if (id < 0)
@@ -129,6 +152,11 @@ namespace metastrings
             return isNumeric;
         }
 
+        /// <summary>
+        /// Seed the cache with info for a set of name IDs
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="ids">Name IDs to cache the info of</param>
         public static async Task CacheNamesAsync(Context ctxt, IEnumerable<int> ids)
         {
             var totalTimer = ScopeTiming.StartTiming();
@@ -165,6 +193,9 @@ namespace metastrings
             }
         }
 
+        /// <summary>
+        /// Clear all the caches of this names type
+        /// </summary>
         public static void ClearCaches()
         {
             sm_cache.Clear();

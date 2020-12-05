@@ -12,12 +12,22 @@ namespace metastrings
         public string msg { get; set; }
     }
 
+    /// <summary>
+    /// Log error message to the metastrings errorlog table with this class
+    /// </summary>
     public static class ErrorLog
     {
+        /// <summary>
+        /// Log the error message
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="userId">User that caused the error</param>
+        /// <param name="ip">Where from the user made the error</param>
+        /// <param name="msg">The error message</param>
         public static async Task LogAsync(Context ctxt, long userId, string ip, string msg)
         {
             string logKey = Guid.NewGuid().ToString();
-            Define define = new Define() { table = "errorlog", key = logKey };
+            Define define = new Define("errorlog", logKey);
             define.SetData("userid", userId);
             define.SetData("ip", ip);
             define.SetData("when", DateTime.UtcNow.ToString("o"));
@@ -35,6 +45,13 @@ namespace metastrings
             );
         }
 
+        /// <summary>
+        /// Query for error messages
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="likePattern">Log messages query</param>
+        /// <param name="maxDaysOld">How far back to go in time</param>
+        /// <returns></returns>
         public static async Task<List<ErrorLogEntry>> QueryAsync(Context ctxt, string likePattern, int maxDaysOld)
         {
             var output = new List<ErrorLogEntry>();
@@ -68,6 +85,11 @@ namespace metastrings
             return output;
         }
 
+        /// <summary>
+        /// All messages from the metastrings errorlogs table
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <returns></returns>
         public static async Task ClearAsync(Context ctxt)
         {
             await ctxt.Cmd.DropAsync(new Drop() { table = "errorlog" });

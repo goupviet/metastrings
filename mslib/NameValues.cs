@@ -4,8 +4,16 @@ using System.Threading.Tasks;
 
 namespace metastrings
 {
+    /// <summary>
+    /// metastrings implementation class for the name-value metadata in the virtual schema
+    /// </summary>
     public static class NameValues
     {
+        /// <summary>
+        /// Remove everying from the metastrings database
+        /// Used by unit tests
+        /// </summary>
+        /// <param name="ctxt"></param>
         public static void Reset(Context ctxt)
         {
             Items.Reset(ctxt);
@@ -15,6 +23,9 @@ namespace metastrings
             Tables.Reset(ctxt);
         }
 
+        /// <summary>
+        /// Clear the object->id and id-object caches in the name-value classes
+        /// </summary>
         public static void ClearCaches()
         {
             Values.ClearCaches();
@@ -22,6 +33,12 @@ namespace metastrings
             Tables.ClearCaches();
         }
 
+        /// <summary>
+        /// Given metadata name-value IDs, return name-value string->object values
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="ids">name=>value IDs</param>
+        /// <returns></returns>
         public static async Task<Dictionary<string, object>> GetMetadataValuesAsync(Context ctxt, Dictionary<int, long> ids)
         {
             var totalTimer = ScopeTiming.StartTiming();

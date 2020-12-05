@@ -260,42 +260,88 @@ namespace metastrings
         }
 
         /// <summary>
-        /// Get a DB reader for a query.
-        /// This uses the parameters internal to the query object.
+        /// Get the metadata for a set of items
         /// </summary>
-        /// <param name="query">metastrings query object</param>
-        /// <returns>Reader for enumerating result rows</returns>
-        public async Task<Reader> GetReaderAsync(Select query)
+        /// <param name="request">List of values to get metadata for</param>
+        /// <returns>Metadata for the items</returns>
+        public async Task<GetResponse> GetAsync(GetRequest request)
         {
             var totalTimer = ScopeTiming.StartTiming();
             try
             {
-                string sql = await GenerateSqlAsync(query).ConfigureAwait(false);
-                return await GetReaderAsync(sql, query.cmdParams).ConfigureAwait(false);
+                var responses = new List<Dictionary<string, object>>(request.values.Count);
+
+                int tableId = await Tables.GetIdAsync(Ctxt, request.table, noCreate: true).ConfigureAwait(false);
+                foreach (var value in request.values)
+                {
+                    long valueId = await Values.GetIdAsync(Ctxt, value).ConfigureAwait(false);
+
+                    long itemId = await Items.GetIdAsync(Ctxt, tableId, valueId, noCreate: true).ConfigureAwait(false);
+                    if (itemId < 0)
+                    {
+                        responses.Add(null);
+                        continue;
+                    }
+
+                    var metaIds = await Items.GetItemDataAsync(Ctxt, itemId).ConfigureAwait(false);
+                    var metaStrings = await NameValues.GetMetadataValuesAsync(Ctxt, metaIds).ConfigureAwait(false);
+
+                    responses.Add(metaStrings);
+                }
+
+                GetResponse response = new GetResponse() { metadata = responses };
+                return response;
             }
             finally
             {
-                ScopeTiming.RecordScope("Cmd.GetReaderAsync(query)", totalTimer);
+                ScopeTiming.RecordScope("Cmd.Get", totalTimer);
             }
         }
 
         /// <summary>
-        /// Get a DB reader for a MySQL query.
-        /// This uses the supplied parameters.
+        /// Query for the metadata for a set of items
         /// </summary>
-        /// <param name="sql">MySQL query</param>
-        /// <param name="cmdParams">Parameters for the query</param>
-        /// <returns></returns>
-        public async Task<Reader> GetReaderAsync(string sql, Dictionary<string, object> cmdParams)
+        /// <param name="request">Structured SQL-like query for items to get</param>
+        /// <returns>Metadata of found items</returns>
+        public async Task<GetResponse> QueryGetAsync(QueryGetRequest request)
         {
             var totalTimer = ScopeTiming.StartTiming();
             try
             {
-                return new Reader(await Ctxt.Db.ExecuteReaderAsync(sql, cmdParams));
+                var itemValues = new Dictionary<long, object>();
+                {
+                    Select select = new Select();
+                    select.select = new List<string> { "id", "value" };
+                    select.from = request.from;
+                    select.where = request.where;
+                    select.orderBy = request.orderBy;
+                    select.limit = request.limit;
+                    select.cmdParams = request.cmdParams;
+                    using (var reader = await Ctxt.ExecSelectAsync(select).ConfigureAwait(false))
+                    {
+                        while (await reader.ReadAsync().ConfigureAwait(false))
+                            itemValues.Add(reader.GetInt64(0), reader.GetValue(1));
+                    }
+                }
+
+                var responses = new List<Dictionary<string, object>>(itemValues.Count);
+                foreach (var itemId in itemValues.Keys)
+                {
+                    var metaIds = await Items.GetItemDataAsync(Ctxt, itemId).ConfigureAwait(false);
+                    var metaStrings = await NameValues.GetMetadataValuesAsync(Ctxt, metaIds).ConfigureAwait(false);
+
+                    metaStrings["id"] = (double)itemId;
+                    metaStrings["value"] = itemValues[itemId];
+
+                    responses.Add(metaStrings);
+                }
+
+                GetResponse response = new GetResponse() { metadata = responses };
+                return response;
             }
             finally
             {
-                ScopeTiming.RecordScope("Cmd.GetReaderAsync(sql)", totalTimer);
+                ScopeTiming.RecordScope("Cmd.QueryGet", totalTimer);
             }
         }
 
@@ -307,7 +353,7 @@ namespace metastrings
         /// <returns></returns>
         public async Task DeleteAsync(string table, object value)
         {
-            await DeleteAsync(table, new[] { value }).ConfigureAwait(false);
+            await DeleteAsync(new Delete(table, value)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -318,7 +364,7 @@ namespace metastrings
         /// <returns></returns>
         public async Task DeleteAsync(string table, IEnumerable<object> values)
         {
-            await DeleteAsync(new Delete() { table = table, values = new List<object>(values) }).ConfigureAwait(false);
+            await DeleteAsync(new Delete(table, values)).ConfigureAwait(false);
         }
 
         /// <summary>

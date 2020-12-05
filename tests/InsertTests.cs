@@ -15,7 +15,7 @@ namespace metastrings
             using (var ctxt = TestUtils.GetCtxt())
             {
                 {
-                    var define = new Define() { table = "fun", key = "some" };
+                    var define = new Define("fun", "some");
                     define.SetData("num", 42);
                     define.SetData("str", "foobar");
                     define.SetData("multi", "blet\nmonkey");
@@ -23,7 +23,7 @@ namespace metastrings
                 }
 
                 {
-                    var define = new Define() { table = "fun", key = "another" };
+                    var define = new Define("fun", "another");
                     define.SetData("num", 69);
                     define.SetData("str", "boofar");
                     define.SetData("multi", "ape\nagony");
@@ -31,7 +31,7 @@ namespace metastrings
                 }
 
                 {
-                    var define = new Define() { table = "fun", key = "yetsome" };
+                    var define = new Define("fun", "yetsome");
                     define.SetData("num", 19);
                     define.SetData("str", "playful");
                     define.SetData("multi", "balloni\nbeats");
@@ -74,7 +74,7 @@ namespace metastrings
                 }
 
                 {
-                    Define define = new Define() { table = "fun", key = "some" };
+                    Define define = new Define("fun", "some");
                     define.SetData("num", 43.0);
                     define.SetData("str", null); // remove the metadata
 
@@ -86,11 +86,7 @@ namespace metastrings
                 Assert.AreEqual(43.0, itemData["num"]);
                 Assert.IsTrue(!itemData.ContainsKey("str"));
 
-                var del = new Delete() { table = "fun" };
-                del.AddValue("some");
-                del.AddValue("another");
-                del.AddValue("yetsome");
-                ctxt.Cmd.DeleteAsync(del).Wait();
+                ctxt.Cmd.DeleteAsync("fun", new[] { "some", "another", "yetsome" }).Wait();
 
                 {
                     Select select = new Select()
@@ -106,12 +102,12 @@ namespace metastrings
                 }
 
                 {
-                    Define numsFirst = new Define() { table = "numsFirst", key = 1 };
+                    Define numsFirst = new Define("numsFirst", 1);
                     numsFirst.SetData("foo", 12);
                     numsFirst.SetData("blet", "79");
                     ctxt.Cmd.DefineAsync(numsFirst).Wait();
 
-                    Define numsNext = new Define() { table = "numsFirst", key = 2 };
+                    Define numsNext = new Define("numsFirst", 2);
                     numsNext.SetData("foo", 15);
                     numsNext.SetData("blet", "63");
                     ctxt.Cmd.DefineAsync(numsNext).Wait();

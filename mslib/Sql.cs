@@ -8,7 +8,6 @@ namespace metastrings
 {
     public static class Sql
     {
-        // Given a SQL-like query string, return a a Select object, ready for querying
         private enum SqlState
         {
             SELECT,
@@ -18,6 +17,11 @@ namespace metastrings
             LIMIT
         }
 
+        /// <summary>
+        /// Given a SQL-like query, return a a Select object, ready for adding parameters and querying
+        /// </summary>
+        /// <param name="sql">SQL-like query</param>
+        /// <returns>Select object for adding parameters and executing</returns>
         public static Select Parse(string sql)
         {
             string[] tokens = Utils.Tokenize(sql);
@@ -235,6 +239,12 @@ namespace metastrings
             return select;
         }
 
+        /// <summary>
+        /// This is where the magic metastrings SQL => MySQL SQL conversion takes place
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="query">metastrings query</param>
+        /// <returns>MySQL SQL</returns>
         public static async Task<string> GenerateSqlAsync(Context ctxt, Select query)
         {
             //

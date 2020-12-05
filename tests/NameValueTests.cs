@@ -36,14 +36,20 @@ namespace metastrings
                 Assert.IsTrue(outMetaDict.ContainsKey(fredNameId));
                 Assert.AreEqual(earnyValueId, outMetaDict[fredNameId]);
 
-                using (var msTrans = ctxt.BeginTrans())
-                {
-                    Define define = new Define() { table = "apelike", key = "foo" };
-                    define.SetData("blet", "monkey");
-                    define.SetData("something", "else");
-                    ctxt.Cmd.DefineAsync(define).Wait();
-                    msTrans.Commit();
-                }
+                Define define = new Define("apelike", "foo");
+                define.SetData("blet", "monkey");
+                define.SetData("something", "else");
+                ctxt.Cmd.DefineAsync(define).Wait();
+
+                GetRequest get = new GetRequest() { table = "apelike" };
+                get.values = new List<object> { "foo" };
+                var gotten = ctxt.Cmd.GetAsync(get).Result;
+
+                Assert.AreEqual(1, gotten.metadata.Count);
+
+                var result = gotten.metadata[0];
+                Assert.AreEqual("monkey", result["blet"]);
+                Assert.AreEqual("else", result["something"]);
             }
         }
     }

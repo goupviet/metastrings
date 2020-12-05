@@ -7,11 +7,22 @@ namespace metastrings
 {
     public static class Items
     {
+        /// <summary>
+        /// Remove all rows from the items table
+        /// </summary>
         public static void Reset(Context ctxt)
         {
             ctxt.Db.ExecuteSql("DELETE FROM items");
         }
 
+        /// <summary>
+        /// Give a table and value, find the item
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="tableId">The table ID</param>
+        /// <param name="valueId">The value ID of the primary key</param>
+        /// <param name="noCreate">Whether to return -1 on error, or throw an exception</param>
+        /// <returns></returns>
         public static async Task<long> GetIdAsync(Context ctxt, int tableId, long valueId, bool noCreate = false)
         {
             var totalTimer = ScopeTiming.StartTiming();
@@ -54,6 +65,12 @@ namespace metastrings
             }
         }
 
+        /// <summary>
+        /// Given an item ID, get the name=>value metadata for the item
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="itemId">The item to get metadat for</param>
+        /// <returns></returns>
         public static async Task<Dictionary<int, long>> GetItemDataAsync(Context ctxt, long itemId)
         {
             var retVal = new Dictionary<int, long>();
@@ -66,6 +83,12 @@ namespace metastrings
             return retVal;
         }
 
+        /// <summary>
+        /// Given an item put name=>value metadata into the database
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="itemId">The item to add metadata to</param>
+        /// <param name="itemData">The name=>value ID metadata</param>
         public static void SetItemData(Context ctxt, long itemId, Dictionary<int, long> itemData)
         {
             string updateSql = $"UPDATE items SET lastmodified = {ctxt.Db.UtcTimestampFunction} WHERE id = {itemId}";
@@ -77,12 +100,9 @@ namespace metastrings
                 if (kvp.Value >= 0) // add-or-update it
                 {
                     sql =
-                        "INSERT INTO itemnamevalues (itemid, nameid, valueid) " +
-                        $"VALUES ({itemId}, {kvp.Key}, {kvp.Value})";
-
-                    sql += " ";
-                    
-                    sql += $"ON DUPLICATE KEY UPDATE valueid = {kvp.Value}";
+                        $"INSERT INTO itemnamevalues (itemid, nameid, valueid) " +
+                        $"VALUES ({itemId}, {kvp.Key}, {kvp.Value}) " +
+                        $"ON DUPLICATE KEY UPDATE valueid = {kvp.Value}";
                 }
                 else // remove it
                     sql = $"DELETE FROM itemnamevalues WHERE itemid = {itemId} AND nameid = {kvp.Key}";
@@ -90,12 +110,23 @@ namespace metastrings
             }
         }
 
+        /// <summary>
+        /// Delete an item
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="itemId">The item to delete</param>
         public static async Task DeleteAsync(Context ctxt, long itemId)
         {
             string sql = $"DELETE FROM items WHERE id = {itemId}";
             await ctxt.Db.ExecuteSqlAsync(sql).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Internal use, get a summary of a text of an item and its metadata
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="itemId">The item to summarize</param>
+        /// <returns>Summary of item</returns>
         public static async Task<string> SummarizeItemAsync(Context ctxt, long itemId)
         {
             var sb = new StringBuilder();

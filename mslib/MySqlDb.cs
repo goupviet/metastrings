@@ -8,6 +8,11 @@ using MySql.Data.MySqlClient;
 
 namespace metastrings
 {
+    /// <summary>
+    /// MySQL implementation of the IDb database interface
+    /// This saves covering the code with MySQL-specifics
+    /// and leaves the door open for swapping out MySQL for Postres, etc.
+    /// </summary>
     public class MySqlDb : IDb
     {
         public MySqlDb(string dbConnStr)
@@ -62,18 +67,6 @@ namespace metastrings
 
         public string InsertIgnore => "INSERT IGNORE INTO";
         public string UtcTimestampFunction => "UTC_TIMESTAMP()";
-
-        public void Lock(string tableName)
-        {
-            using (var cmd = new MySqlCommand($"LOCK TABLES {tableName} WRITE", DbConn))
-                cmd.ExecuteNonQuery();
-        }
-
-        public void Unlock()
-        {
-            using (var cmd = new MySqlCommand("UNLOCK TABLES", DbConn))
-                cmd.ExecuteNonQuery();
-        }
 
         public int ExecuteSql(string sql, Dictionary<string, object> cmdParams = null)
         {

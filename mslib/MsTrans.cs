@@ -2,6 +2,10 @@
 
 namespace metastrings
 {
+    /// <summary>
+    /// Wrapper class for transactions, 
+    /// this class manages transaction lifetime and nested trasactions.
+    /// </summary>
     public class MsTrans : IDisposable
     {
         public MsTrans(IDb db)

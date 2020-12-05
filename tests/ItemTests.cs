@@ -91,7 +91,7 @@ namespace metastrings
 
                 ctxt.Cmd.CreateTableAsync(new TableCreate() { table = "blet" }).Wait();
 
-                Define define = new Define() { table = "blet", key = "monkey" };
+                Define define = new Define("blet", "monkey");
                 define.SetData("doesNot", "matter");
                 ctxt.Cmd.DefineAsync(define).Wait();
 
