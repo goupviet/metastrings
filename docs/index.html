@@ -2,7 +2,7 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
-    <title>metastrings - a NoSQL database</title>
+    <title>metastrings v2 - a NoSQL database</title>
     <style>
         body  {
             font-family: Verdana, sans-serif;
@@ -87,6 +87,8 @@
                     <li><a href="#Names">Names</a></li>
                     <li><a href="#Values">Values</a></li>
                     <li><a href="#NameValues">NameValues</a></li>
+                    <li><a href="#LongStrings">LongStrings</a></li>
+                    <li><a href="#Schema">Schema Diagram</a></li>
                 </ol>
             </li>
             <li>
@@ -105,10 +107,8 @@
     <div id=contentDiv>
         <div id=pageHeader>metastrings - a NoSQL database</div>
         <h1><a name=whatis>What is metastrings?</a></h1>
-        <b>metastrings</b> is a .NET class library that extends the functionality of a MySQL database.
-		You create the metastrings schema in your MySQL DB,
-		then configure your .NET application to access that schema,
-		and do database programming using the .NET class library.
+        <b>metastrings</b> is a NoSQL database built on top of MySQL.  
+		It consists of a MySQL schema, and a .NET class library that you program against.
 		
 		<br>
 		<br>
@@ -116,27 +116,47 @@
 		metastrings powers <a target=_blank href="https://www.balognabeats.com">Balogna Beats</a>, 
 		a web application for creating, sharing, and enjoying drum beats.
 		<a target=_blank href="https://www.balognabeats.com/metastrings.aspx">Here's info</a>
-		on how Balogna Beats use metastrings.
+		on how Balogna Beats uses metastrings.
 		
 		<br>
 		<br>
         
-		To add a row to a table that represents users in the system, you use code like this, 
-		revolving around the Define class and the cxt.Cmd object:
+		See how simple it is to add a row to a table:
 <pre class="prettyprint lang-cs">
+
+// Lacking a column for the primary key, use a GUID
 string userKey = Guid.NewGuid().ToString();
-Define define = new Define() { table = "users", key = userKey };
+
+Define define = new Define("users", userKey); // table name, primary key value
+
+// Supply the column data.
 define.SetData("email", email);
 define.SetData("name", name);
 define.SetData("logintoken", "");
 define.SetData("blocked", 0);
+
+// Do the UPSERT.
 await ctxt.Cmd.DefineAsync(define);
 </pre>
+		Just load up the Define object and have ctxt.Cmd.DefineAsync do the work.
+		Think of how much SQL that would have taken!
+		
+		<br>
+		<br>
+		
+		And you could have done that with the "users" table not yet defined; this call would have created the table automatically.
+		
+		<br>
+		<br>
+		
+		To add a new column, load up the Define with another call to SetData for the new column name and value.
 
-		To access data in a metastrings table to get the row IDs and titles from the beats table, you use code like this, 
-		revolving around the Select and Sql classes and the ctxt object:
+		<br>
+		<br>
+		
+		To access data in a metastrings table to get the row IDs and titles from the beats table:
 <pre class="prettyprint lang-cs">
-Select select =
+var select =
     Sql.Parse
     (
         "SELECT id, title FROM beats " +
@@ -158,7 +178,18 @@ using (var reader = await ctxt.ExecSelectAsync(select))
         result.beats.Add(newBeat);
     }
 }
-</pre>		
+</pre>	
+		See the Sql.Parse, that turns the metastrings SQL query into a MySQL SQL query,
+		that's where the magic happens.  
+		So you just send your SQL in, pass in your parameters, then you do typical database programming.
+		
+		<br>
+		<br>
+		
+		The query looks like beats of a particular userid.  
+		No need to specify an index; all columns are automatically indexed.
+		One less thing to worry about.
+		
         <h1><a name=features>Why metastrings?</a></h1>
         <ol>
             <li>Dynamic schema: transparently add new columns and ignore stale columns</li>
@@ -190,7 +221,7 @@ using (var reader = await ctxt.ExecSelectAsync(select))
         but had an Achille's heel with the schema lacking unique indexes, 
         requiring locking tables to maintaining data integrity.
         <br><br>
-        metastring2 is focused as an extension to MySQL, and it solves the ingest problem by limiting value lengths
+        metastring(v2) is focused as an extension to MySQL, and it solves the ingest problem by limiting value lengths
         and using unique indexes.  A separate mechanism is provided for working with long strings.
         <br><br>
         Documentation for metastrings(v1) is found <a href="v1/index.html">here</a>
@@ -228,6 +259,7 @@ using (var reader = await ctxt.ExecSelectAsync(select))
             <li><a class=topic name=Values>Values</a> - the row data</li>
             <li><a class=topic name=NameValues>NameValues</a> - get name-values literals from ids</li>
             <li><a class=topic name=LongStrings>LongStrings</a> - support for long text strings</li>
+			<li><a class=topic name=Schema>Schema Diagram</a><br><img src="diagram2.png"></li>
         </ul>
 
         <h3><a name=utils>utils</a></h3>
@@ -251,6 +283,7 @@ using (var reader = await ctxt.ExecSelectAsync(select))
                 Central location for the little types used throughout the codebase,
                 like MetaStringException
             </li>
+			
             <li>
                 <a class=topic name=Utils>Utils</a> - Low-level static class for getting things done
                 <ol>
@@ -288,10 +321,6 @@ relevance: 2.353236198425293
 Results: 1
 
 ></pre>
-
-        <h2><a name="schema">Internal MySQL Database Schema</a></h2>
-        <img src="diagram2.png">
-        <br>
     </div>
 </body>
 </html>
