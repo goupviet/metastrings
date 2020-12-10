@@ -401,14 +401,14 @@ namespace metastrings
         /// </summary>
         /// <param name="drop">Drop request object</param>
         /// <returns></returns>
-        public async Task DropAsync(Drop drop)
+        public async Task DropAsync(string table)
         {
             var totalTimer = ScopeTiming.StartTiming();
             try
             {
                 NameValues.ClearCaches();
 
-                int tableId = await Tables.GetIdAsync(Ctxt, drop.table, noCreate: true, noException: true).ConfigureAwait(false);
+                int tableId = await Tables.GetIdAsync(Ctxt, table, noCreate: true, noException: true).ConfigureAwait(false);
                 if (tableId < 0)
                     return;
 
@@ -429,9 +429,9 @@ namespace metastrings
         /// Reset the metastrings world
         /// </summary>
         /// <param name="reset">Reset request object</param>
-        public void Reset(Reset reset)
+        public void Reset(bool includeNameValues = false)
         {
-            if (reset.includeNameValues)
+            if (includeNameValues)
                 NameValues.Reset(Ctxt);
             else
                 Items.Reset(Ctxt);
@@ -444,13 +444,13 @@ namespace metastrings
         /// </summary>
         /// <param name="schema">Schema request object</param>
         /// <returns></returns>
-        public async Task<SchemaResponse> GetSchemaAsync(Schema schema)
+        public async Task<SchemaResponse> GetSchemaAsync(string table)
         {
             string sql =
                 "SELECT t.name AS tablename, n.name AS colname " +
                 "FROM tables t JOIN names n ON n.tableid = t.id";
 
-            string requestedTable = schema.table;
+            string requestedTable = table;
             bool haveRequestedTableName = !string.IsNullOrWhiteSpace(requestedTable);
             if (haveRequestedTableName)
                 sql += " WHERE t.name = @name";
@@ -466,13 +466,13 @@ namespace metastrings
             {
                 while (await reader.ReadAsync().ConfigureAwait(false))
                 {
-                    string table = reader.GetString(0);
+                    string curTable = reader.GetString(0);
                     string colname = reader.GetString(1);
 
-                    if (!responseDict.ContainsKey(table))
-                        responseDict.Add(table, new List<string>());
+                    if (!responseDict.ContainsKey(curTable))
+                        responseDict.Add(curTable, new List<string>());
 
-                    responseDict[table].Add(colname);
+                    responseDict[curTable].Add(colname);
                 }
             }
 
@@ -486,9 +486,9 @@ namespace metastrings
         /// </summary>
         /// <param name="create">Table create request</param>
         /// <returns></returns>
-        public async Task CreateTableAsync(TableCreate create)
+        public async Task CreateTableAsync(string name, bool isNumeric)
         {
-            await Tables.GetIdAsync(Ctxt, create.table, create.isNumeric).ConfigureAwait(false);
+            await Tables.GetIdAsync(Ctxt, name, isNumeric).ConfigureAwait(false);
         }
 
         /// <summary>

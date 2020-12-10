@@ -111,10 +111,26 @@ namespace metastrings
         public async Task<List<T>> ExecListAsync<T>(Select select)
         {
             var values = new List<T>();
-            using (var reader = await ExecSelectAsync(select))
+            using (var reader = await ExecSelectAsync(select).ConfigureAwait(false))
             {
-                while (await reader.ReadAsync())
+                while (await reader.ReadAsync().ConfigureAwait(false))
                     values.Add((T)reader.GetValue(0));
+            }
+            return values;
+        }
+
+        /// <summary>
+        /// Query helper to get a dictionary of results from a single-column query
+        /// </summary>
+        /// <param name="select">Query to execute</param>
+        /// <returns>List of results of type T</returns>
+        public async Task<ListDictionary<K, V>> ExecDictAsync<K, V>(Select select)
+        {
+            var values = new ListDictionary<K, V>();
+            using (var reader = await ExecSelectAsync(select).ConfigureAwait(false))
+            {
+                while (await reader.ReadAsync().ConfigureAwait(false))
+                    values.Add((K)reader.GetValue(0), (V)reader.GetValue(1));
             }
             return values;
         }

@@ -28,9 +28,7 @@ namespace metastrings
         {
             string logKey = Guid.NewGuid().ToString();
             Define define = new Define("errorlog", logKey);
-            define.SetData("userid", userId);
-            define.SetData("ip", ip);
-            define.SetData("when", DateTime.UtcNow.ToString("o"));
+            define.Set("userid", userId).Set("ip", ip).Set("when", DateTime.UtcNow.ToString("o"));
             await ctxt.Cmd.DefineAsync(define).ConfigureAwait(false);
             long logId = await ctxt.GetRowIdAsync("errorlog", logKey);
             await ctxt.Cmd.PutLongStringAsync
@@ -92,7 +90,7 @@ namespace metastrings
         /// <returns></returns>
         public static async Task ClearAsync(Context ctxt)
         {
-            await ctxt.Cmd.DropAsync(new Drop() { table = "errorlog" });
+            await ctxt.Cmd.DropAsync("errorlog");
         }
     }
 }

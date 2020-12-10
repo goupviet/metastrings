@@ -11,7 +11,7 @@ namespace metastrings
         public Dictionary<object, Dictionary<string, object>> metadata { get; set; }
 
         // helper function
-        public void SetData(object itemValue, string metadataName, object metadataValue)
+        public void Set(object itemValue, string metadataName, object metadataValue)
         {
             if (metadata == null)
                 metadata = new Dictionary<object, Dictionary<string, object>>();
@@ -61,8 +61,7 @@ namespace metastrings
             this.key = key;
         }
 
-        // helper function
-        public Define SetData(string metadataName, object metadataValue)
+        public Define Set(string metadataName, object metadataValue)
         {
             metadata[metadataName] = metadataValue;
             return this;
@@ -135,18 +134,20 @@ namespace metastrings
 
         public Dictionary<string, object> cmdParams { get; set; }
 
-        public void AddParam(string name, object value)
+        public QueryGetRequest AddParam(string name, object value)
         {
             if (cmdParams == null)
                 cmdParams = new Dictionary<string, object>();
             cmdParams.Add(name, value);
+            return this;
         }
 
-        public void AddOrder(string name, bool descending)
+        public QueryGetRequest AddOrder(string name, bool descending)
         {
             if (orderBy == null)
                 orderBy = new List<Order>();
             orderBy.Add(new Order() { field = name, descending = descending });
+            return this;
         }
     }
 
@@ -186,16 +187,6 @@ namespace metastrings
         }
     }
 
-    public class Drop
-    {
-        public string table { get; set; }
-    }
-
-    public class Reset
-    {
-        public bool includeNameValues { get; set; }
-    }
-
     public class Schema
     {
         public string table { get; set; } // optional to get the full schema
@@ -203,13 +194,8 @@ namespace metastrings
 
     public class SchemaResponse
     {
+        // table name => column names, kept in order
         public ListDictionary<string, List<string>> tables { get; set; }
-    }
-
-    public class TableCreate
-    {
-        public string table { get; set; }
-        public bool isNumeric { get; set; }
     }
 
     public class LongStringOp
@@ -219,11 +205,8 @@ namespace metastrings
         public string fieldName { get; set; }
     }
 
-    public class LongStringGet
+    public class LongStringGet : LongStringOp
     {
-        public string table { get; set; }
-        public long itemId { get; set; }
-        public string fieldName { get; set; }
         public string like { get; set; }
     }
 
