@@ -37,8 +37,7 @@ namespace metastrings
                 Assert.AreEqual(earnyValueId, outMetaDict[fredNameId]);
 
                 Define define = new Define("apelike", "foo");
-                define.SetData("blet", "monkey");
-                define.SetData("something", "else");
+                define.Set("blet", "monkey").Set("something", "else");
                 ctxt.Cmd.DefineAsync(define).Wait();
 
                 GetRequest get = new GetRequest() { table = "apelike" };

@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{31E62885-4
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "metaq", "metaq\metaq.csproj", "{E26A596F-6EC2-4C31-843D-C86DD9E77389}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MsFileIndexer", "MsFileIndexer\MsFileIndexer.csproj", "{87BA6DE9-9F97-47AA-B18E-E0EA9D2379E0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +38,10 @@ Global
 		{E26A596F-6EC2-4C31-843D-C86DD9E77389}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E26A596F-6EC2-4C31-843D-C86DD9E77389}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E26A596F-6EC2-4C31-843D-C86DD9E77389}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87BA6DE9-9F97-47AA-B18E-E0EA9D2379E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87BA6DE9-9F97-47AA-B18E-E0EA9D2379E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87BA6DE9-9F97-47AA-B18E-E0EA9D2379E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87BA6DE9-9F97-47AA-B18E-E0EA9D2379E0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -44,7 +50,7 @@ Global
 		{31E62885-4DC5-48BB-8E54-FCEB9E3055A6} = {74A41A45-80FD-4833-9669-3A0905120B65}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		VisualSVNWorkingCopyRoot = .
 		SolutionGuid = {1385C130-598D-4FC9-97D2-2CC750F0D03D}
+		VisualSVNWorkingCopyRoot = .
 	EndGlobalSection
 EndGlobal

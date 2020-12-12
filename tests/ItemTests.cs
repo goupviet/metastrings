@@ -89,10 +89,10 @@ namespace metastrings
             {
                 string longStr;
 
-                ctxt.Cmd.CreateTableAsync(new TableCreate() { table = "blet" }).Wait();
+                ctxt.Cmd.CreateTableAsync("blet", isNumeric: false).Wait();
 
                 Define define = new Define("blet", "monkey");
-                define.SetData("doesNot", "matter");
+                define.Set("doesNot", "matter");
                 ctxt.Cmd.DefineAsync(define).Wait();
 
                 long monkeyId = ctxt.GetRowIdAsync("blet", "monkey").Result;

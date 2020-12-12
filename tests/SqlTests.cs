@@ -22,14 +22,14 @@ namespace metastrings
                 // Add a row.
                 {
                     var define = new Define("somethin", "foo");
-                    define.SetData("blet", "monkey");
+                    define.Set("blet", "monkey");
                     ctxt.Cmd.DefineAsync(define).Wait();
                 }
 
                 // Add another row.
                 {
                     var define = new Define("somethin", "bar");
-                    define.SetData("flub", "snake");
+                    define.Set("flub", "snake");
                     ctxt.Cmd.DefineAsync(define).Wait();
                 }
 
@@ -51,8 +51,7 @@ namespace metastrings
                 // Have a table now, but bogus WHERE column bdfadf
                 {
                     var select = Sql.Parse("SELECT nothin\nFROM somethin\nWHERE value = @foo AND bdfadf = @bdfadf");
-                    select.AddParam("@foo", "foo");
-                    select.AddParam("@bdfadf", 12.0);
+                    select.AddParam("@foo", "foo").AddParam("@bdfadf", 12.0);
                     using (var reader = ctxt.ExecSelectAsync(select).Result)
                         Assert.IsFalse(reader.Read());
                 }

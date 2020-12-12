@@ -16,25 +16,19 @@ namespace metastrings
             {
                 {
                     var define = new Define("fun", "some");
-                    define.SetData("num", 42);
-                    define.SetData("str", "foobar");
-                    define.SetData("multi", "blet\nmonkey");
+                    define.Set("num", 42).Set("str", "foobar").Set("multi", "blet\nmonkey");
                     ctxt.Cmd.DefineAsync(define).Wait();
                 }
 
                 {
                     var define = new Define("fun", "another");
-                    define.SetData("num", 69);
-                    define.SetData("str", "boofar");
-                    define.SetData("multi", "ape\nagony");
+                    define.Set("num", 69).Set("str", "boofar").Set("multi", "ape\nagony");
                     ctxt.Cmd.DefineAsync(define).Wait();
                 }
 
                 {
                     var define = new Define("fun", "yetsome");
-                    define.SetData("num", 19);
-                    define.SetData("str", "playful");
-                    define.SetData("multi", "balloni\nbeats");
+                    define.Set("num", 19).Set("str", "playful").Set("multi", "balloni\nbeats");
                     ctxt.Cmd.DefineAsync(define).Wait();
                 }
 
@@ -75,8 +69,8 @@ namespace metastrings
 
                 {
                     Define define = new Define("fun", "some");
-                    define.SetData("num", 43.0);
-                    define.SetData("str", null); // remove the metadata
+                    define.Set("num", 43.0);
+                    define.Set("str", null); // remove the metadata
 
                     ctxt.Cmd.DefineAsync(define).Wait();
                 }
@@ -103,13 +97,12 @@ namespace metastrings
 
                 {
                     Define numsFirst = new Define("numsFirst", 1);
-                    numsFirst.SetData("foo", 12);
-                    numsFirst.SetData("blet", "79");
+                    numsFirst.Set("foo", 12);
+                    numsFirst.Set("blet", "79");
                     ctxt.Cmd.DefineAsync(numsFirst).Wait();
 
                     Define numsNext = new Define("numsFirst", 2);
-                    numsNext.SetData("foo", 15);
-                    numsNext.SetData("blet", "63");
+                    numsNext.Set("foo", 15).Set("blet", "63");
                     ctxt.Cmd.DefineAsync(numsNext).Wait();
 
                     Select select = Sql.Parse("SELECT value, foo, blet\nFROM numsFirst");
