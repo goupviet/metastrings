@@ -113,7 +113,6 @@ namespace metastrings
                             if (reader.GetInt64(0) == 1)
                             {
                                 Assert.AreEqual(12, reader.GetDouble(1));
-                                object strObj = reader.GetValue(2); // FORNOW
                                 Assert.AreEqual("79", reader.GetString(2));
                             }
                             else if (reader.GetInt64(0) == 2)

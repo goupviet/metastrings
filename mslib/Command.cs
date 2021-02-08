@@ -186,8 +186,6 @@ namespace metastrings
 
                 bool isKeyNumeric = !(define.key is string);
                 int tableId = await Tables.GetIdAsync(Ctxt, define.table, isKeyNumeric).ConfigureAwait(false);
-                // FORNOW
-                //TableObj table = await Tables.GetTableAsync(Ctxt, tableId).ConfigureAwait(false);
                 long valueId = await Values.GetIdAsync(Ctxt, define.key).ConfigureAwait(false);
                 long itemId = await Items.GetIdAsync(Ctxt, tableId, valueId).ConfigureAwait(false);
                 ScopeTiming.RecordScope("Define.Setup", localTimer);

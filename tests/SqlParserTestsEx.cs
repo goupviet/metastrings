@@ -106,7 +106,6 @@ namespace metastrings
                 Assert.AreEqual("No WHERE criteria", exp.Message);
             }
 
-            /* FORNOW - Need to patch up Utils.Validate... calls with SqlException equivalents
             sql = "SELECT foo, fred, blet FROM something WHERE foo";
             try
             {
@@ -120,7 +119,6 @@ namespace metastrings
                 select = Sql.Parse(sql); Assert.Fail();
             }
             catch (SqlException) { }
-            */
 
             sql = "SELECT foo, fred, blet FROM something WHERE foo = @foo";
             select = Sql.Parse(sql);

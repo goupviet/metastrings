@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.20, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.18, for Win64 (x86_64)
 --
--- Host: localhost    Database: metastringstest
+-- Host: localhost    Database: metastrings
 -- ------------------------------------------------------
--- Server version	8.0.20
+-- Server version	8.0.18
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `bvalues`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bvalues` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `isNumeric` bit(1) NOT NULL,
   `numberValue` double NOT NULL,
   `stringValue` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE `bvalues` (
   KEY `idx_bvalues_number` (`numberValue`,`isNumeric`,`id`),
   KEY `idx_bvalues_prefix` (`stringValue`,`isNumeric`,`id`),
   FULLTEXT KEY `idx_bvalues_fulltext` (`stringValue`)
-) ENGINE=InnoDB AUTO_INCREMENT=593123 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=593487 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -43,9 +43,9 @@ DROP TABLE IF EXISTS `itemnamevalues`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `itemnamevalues` (
-  `itemid` bigint NOT NULL,
-  `nameid` int NOT NULL,
-  `valueid` bigint NOT NULL,
+  `itemid` bigint(20) NOT NULL,
+  `nameid` int(11) NOT NULL,
+  `valueid` bigint(20) NOT NULL,
   PRIMARY KEY (`itemid`,`nameid`),
   KEY `fk_inv_names_idx` (`nameid`),
   KEY `fk_inv_values_idx` (`valueid`),
@@ -63,9 +63,9 @@ DROP TABLE IF EXISTS `items`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `items` (
-  `id` bigint NOT NULL AUTO_INCREMENT,
-  `tableid` int NOT NULL,
-  `valueid` bigint NOT NULL,
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `tableid` int(11) NOT NULL,
+  `valueid` bigint(20) NOT NULL,
   `created` timestamp NOT NULL,
   `lastmodified` timestamp NOT NULL,
   PRIMARY KEY (`id`),
@@ -75,7 +75,7 @@ CREATE TABLE `items` (
   KEY `idx_items_lastmodified` (`lastmodified`),
   CONSTRAINT `fk_item_tables` FOREIGN KEY (`tableid`) REFERENCES `tables` (`id`),
   CONSTRAINT `fk_item_values` FOREIGN KEY (`valueid`) REFERENCES `bvalues` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=735510 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=735650 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -96,6 +96,22 @@ SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = @saved_cs_client;
 
 --
+-- Table structure for table `likes`
+--
+
+DROP TABLE IF EXISTS `likes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `likes` (
+  `beatid` bigint(20) NOT NULL,
+  `userid` bigint(20) NOT NULL,
+  PRIMARY KEY (`beatid`,`userid`),
+  KEY `idx_like_users` (`userid`),
+  CONSTRAINT `fk_likes_items` FOREIGN KEY (`beatid`) REFERENCES `items` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `longstrings`
 --
 
@@ -103,7 +119,7 @@ DROP TABLE IF EXISTS `longstrings`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `longstrings` (
-  `itemid` bigint NOT NULL,
+  `itemid` bigint(20) NOT NULL,
   `name` varchar(255) NOT NULL,
   `longstring` text NOT NULL,
   PRIMARY KEY (`itemid`,`name`),
@@ -120,15 +136,47 @@ DROP TABLE IF EXISTS `names`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `names` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `tableid` int NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tableid` int(11) NOT NULL,
   `name` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `isNumeric` bit(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_types` (`name`,`tableid`),
   KEY `fk_name_table_id_idx` (`tableid`),
   CONSTRAINT `fk_name_table_id` FOREIGN KEY (`tableid`) REFERENCES `tables` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB AUTO_INCREMENT=3615 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3636 DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `playlikes`
+--
+
+DROP TABLE IF EXISTS `playlikes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `playlikes` (
+  `beatid` bigint(20) NOT NULL,
+  `plays` bigint(20) NOT NULL DEFAULT '0',
+  `likes` bigint(20) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`beatid`),
+  CONSTRAINT `fk_playlikes_items` FOREIGN KEY (`beatid`) REFERENCES `items` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `plays`
+--
+
+DROP TABLE IF EXISTS `plays`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `plays` (
+  `beatid` bigint(20) NOT NULL,
+  `userid` bigint(20) NOT NULL,
+  PRIMARY KEY (`beatid`,`userid`),
+  KEY `idx_plays_uesrs` (`userid`) /*!80000 INVISIBLE */,
+  CONSTRAINT `fx_plays_items` FOREIGN KEY (`beatid`) REFERENCES `items` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -139,12 +187,12 @@ DROP TABLE IF EXISTS `tables`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tables` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   `isNumeric` bit(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1253 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=1260 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -159,7 +207,7 @@ CREATE TABLE `tables` (
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 SQL SECURITY DEFINER */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
 /*!50001 VIEW `itemvalues` AS select `inv`.`itemid` AS `itemid`,`inv`.`nameid` AS `nameid`,`v`.`id` AS `valueid`,`v`.`isNumeric` AS `isNumeric`,`v`.`numberValue` AS `numberValue`,`v`.`stringValue` AS `stringValue` from (`itemnamevalues` `inv` join `bvalues` `v` on((`v`.`id` = `inv`.`valueid`))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -174,4 +222,4 @@ CREATE TABLE `tables` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-11-15 11:10:50
+-- Dump completed on 2021-02-02 18:22:13
