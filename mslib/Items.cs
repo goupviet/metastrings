@@ -29,16 +29,16 @@ namespace metastrings
             try
             {
                 Exception lastExp = null;
+                var cmdParams =
+                    new Dictionary<string, object>
+                    {
+                                { "@tableId", tableId },
+                                { "@valueId", valueId }
+                    };
                 for (int tryCount = 1; tryCount <= 4; ++tryCount)
                 {
                     try
                     {
-                        Dictionary<string, object> cmdParams =
-                            new Dictionary<string, object>
-                            {
-                                { "@tableId", tableId },
-                                { "@valueId", valueId }
-                            };
                         string selectSql = "SELECT id FROM items WHERE tableId = @tableId AND valueId = @valueId";
                         object idObj = await ctxt.Db.ExecuteScalarAsync(selectSql, cmdParams).ConfigureAwait(false);
                         long id = Utils.ConvertDbInt64(idObj);
@@ -47,9 +47,9 @@ namespace metastrings
                         else if (id >= 0)
                             return id;
 
-                        string insertSql = $"{ctxt.Db.InsertIgnore} items (tableid, valueid, created, lastmodified) VALUES (@tableId, @valueId, {ctxt.Db.UtcTimestampFunction}, {ctxt.Db.UtcTimestampFunction})";
+                        string insertSql = $"INSERT IGNORE INTO items (tableid, valueid, created, lastmodified) " +
+                                            $"VALUES (@tableId, @valueId, {ctxt.Db.UtcTimestampFunction}, {ctxt.Db.UtcTimestampFunction})";
                         id = await ctxt.Db.ExecuteInsertAsync(insertSql, cmdParams).ConfigureAwait(false);
-                        return id;
                     }
                     catch (Exception exp)
                     {
@@ -135,6 +135,9 @@ namespace metastrings
 
             int tableId =
                 Utils.ConvertDbInt32(await ctxt.Db.ExecuteScalarAsync($"SELECT tableid FROM items WHERE id = {itemId}"));
+            if (tableId < 0)
+                throw new MetaStringsException("Item not found: " + itemId);
+
             string tableName = (await Tables.GetTableAsync(ctxt, tableId)).name;
             sb.AppendLine($"Table: {tableName} ({tableId})");
 
@@ -152,9 +155,7 @@ namespace metastrings
             using (var reader = await ctxt.Db.ExecuteReaderAsync($"SELECT name, longstring FROM longstrings WHERE itemid = {itemId}"))
             {
                 while (await reader.ReadAsync())
-                {
                     sb.AppendLine($"{reader.GetString(0)}:\n{reader.GetString(1)}\n");
-                }
             }
 
             return sb.ToString();

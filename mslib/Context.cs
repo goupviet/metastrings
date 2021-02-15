@@ -199,7 +199,5 @@ namespace metastrings
             m_postItemOps.Clear();
         }
         private List<string> m_postItemOps = new List<string>();
-
-        private static ConcurrentDictionary<string, string> sm_dbConnStrs = new ConcurrentDictionary<string, string>();
     }
 }
