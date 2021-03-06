@@ -193,7 +193,7 @@ namespace metastrings
         private const string ParamPattern = "^\\@[a-zA-Z](\\w)*$";
         private static Regex IsParamRegEx = new Regex(ParamPattern, RegexOptions.Compiled);
 
-        private static HashSet<string> QueryOps =
+        public static readonly HashSet<string> QueryOps =
             new HashSet<string>
             {
                 "=", "<>", ">", ">=", "<", "<=",
@@ -201,7 +201,7 @@ namespace metastrings
                 "like"
             };
 
-        private static HashSet<string> ReservedWords =
+        public static readonly HashSet<string> ReservedWords =
             new HashSet<string> 
             { 
                 "select",
