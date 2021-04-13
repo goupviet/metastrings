@@ -181,45 +181,45 @@ namespace metastrings
             {
                 var localTimer = ScopeTiming.StartTiming();
 
-                if (define.metadata == null || define.metadata.Count == 0)
-                    return;
-
                 bool isKeyNumeric = !(define.key is string);
                 int tableId = await Tables.GetIdAsync(Ctxt, define.table, isKeyNumeric).ConfigureAwait(false);
                 long valueId = await Values.GetIdAsync(Ctxt, define.key).ConfigureAwait(false);
                 long itemId = await Items.GetIdAsync(Ctxt, tableId, valueId).ConfigureAwait(false);
                 ScopeTiming.RecordScope("Define.Setup", localTimer);
 
-                // name => nameid
-                var nameValueIds = new Dictionary<int, long>();
-                foreach (var kvp in define.metadata)
+                if (define.metadata != null)
                 {
-                    bool isMetadataNumeric = !(kvp.Value is string);
-                    int nameId = await Names.GetIdAsync(Ctxt, tableId, kvp.Key, isMetadataNumeric).ConfigureAwait(false);
-                    if (kvp.Value == null) // erase value
+                    // name => nameid
+                    var nameValueIds = new Dictionary<int, long>();
+                    foreach (var kvp in define.metadata)
                     {
-                        nameValueIds[nameId] = -1;
-                        continue;
+                        bool isMetadataNumeric = !(kvp.Value is string);
+                        int nameId = await Names.GetIdAsync(Ctxt, tableId, kvp.Key, isMetadataNumeric).ConfigureAwait(false);
+                        if (kvp.Value == null) // erase value
+                        {
+                            nameValueIds[nameId] = -1;
+                            continue;
+                        }
+                        bool isNameNumeric = await Names.GetNameIsNumericAsync(Ctxt, nameId).ConfigureAwait(false);
+                        bool isValueNumeric = !(kvp.Value is string);
+                        if (isValueNumeric != isNameNumeric)
+                        {
+                            throw
+                                new MetaStringsException
+                                (
+                                    $"Data numeric does not match name: {kvp.Key}" +
+                                    $"\n - value is numeric: {isValueNumeric} - {kvp.Value}" +
+                                    $"\n - name is numeric: {isNameNumeric}"
+                                );
+                        }
+                        nameValueIds[nameId] =
+                            await Values.GetIdAsync(Ctxt, kvp.Value).ConfigureAwait(false);
                     }
-                    bool isNameNumeric = await Names.GetNameIsNumericAsync(Ctxt, nameId).ConfigureAwait(false);
-                    bool isValueNumeric = !(kvp.Value is string);
-                    if (isValueNumeric != isNameNumeric)
-                    {
-                        throw
-                            new MetaStringsException
-                            (
-                                $"Data numeric does not match name: {kvp.Key}" +
-                                $"\n - value is numeric: {isValueNumeric} - {kvp.Value}" +
-                                $"\n - name is numeric: {isNameNumeric}"
-                            );
-                    }
-                    nameValueIds[nameId] =
-                        await Values.GetIdAsync(Ctxt, kvp.Value).ConfigureAwait(false);
-                }
-                ScopeTiming.RecordScope("Define.NameIds", localTimer);
+                    ScopeTiming.RecordScope("Define.NameIds", localTimer);
 
-                Items.SetItemData(Ctxt, itemId, nameValueIds);
-                ScopeTiming.RecordScope("Define.ItemsCommit", localTimer);
+                    Items.SetItemData(Ctxt, itemId, nameValueIds);
+                    ScopeTiming.RecordScope("Define.ItemsCommit", localTimer);
+                }
 
                 await Ctxt.ProcessPostOpsAsync().ConfigureAwait(false);
                 ScopeTiming.RecordScope("Define.PostOps", localTimer);
