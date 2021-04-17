@@ -42,7 +42,7 @@ namespace metastrings
                 Db = null;
             }
 
-            if (m_postItemOps.Count > 0)
+            if (m_postItemOps != null && m_postItemOps.Count > 0)
                 throw new MetaStringsException("Post ops remain; call ProcessPostOpsAsync before disposing the metastrings context");
         }
 
@@ -171,7 +171,7 @@ namespace metastrings
         /// </summary>
         public async Task ProcessPostOpsAsync()
         {
-            if (m_postItemOps.Count == 0)
+            if (m_postItemOps == null || m_postItemOps.Count == 0)
                 return;
 
             var totalTimer = ScopeTiming.StartTiming();
@@ -192,12 +192,15 @@ namespace metastrings
         }
         public void AddPostOp(string sql)
         {
+            if (m_postItemOps == null)
+                m_postItemOps = new List<string>();
             m_postItemOps.Add(sql);
         }
         public void ClearPostOps()
         {
-            m_postItemOps.Clear();
+            if (m_postItemOps != null)
+                m_postItemOps.Clear();
         }
-        private List<string> m_postItemOps = new List<string>();
+        private List<string> m_postItemOps;
     }
 }
