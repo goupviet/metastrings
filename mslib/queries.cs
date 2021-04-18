@@ -205,11 +205,6 @@ namespace metastrings
         public string fieldName { get; set; }
     }
 
-    public class LongStringGet : LongStringOp
-    {
-        public string like { get; set; }
-    }
-
     public class LongStringPut : LongStringOp
     {
         public string longString { get; set; }

@@ -96,7 +96,7 @@ namespace metastrings
 
                 long monkeyId = ctxt.GetRowIdAsync("blet", "monkey").Result;
 
-                LongStringGet get = new LongStringGet() { table = "blet", fieldName = "foo", itemId = monkeyId, like = "" };
+                LongStringOp get = new LongStringOp() { table = "blet", fieldName = "foo", itemId = monkeyId };
                 longStr = ctxt.Cmd.GetLongStringAsync(get).Result;
                 Assert.IsNull(longStr);
 

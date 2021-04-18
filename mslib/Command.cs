@@ -503,9 +503,9 @@ namespace metastrings
         /// </summary>
         /// <param name="get">String get request</param>
         /// <returns>Long string value, or null if not found</returns>
-        public async Task<string> GetLongStringAsync(LongStringGet get)
+        public async Task<string> GetLongStringAsync(LongStringOp get)
         {
-            string longString = await LongStrings.GetStringAsync(Ctxt, get.itemId, get.fieldName, get.like).ConfigureAwait(false);
+            string longString = await LongStrings.GetStringAsync(Ctxt, get.itemId, get.fieldName).ConfigureAwait(false);
             return longString;
         }
 
