@@ -30,7 +30,7 @@ namespace metastrings
             Define define = new Define("errorlog", logKey);
             define.Set("userid", userId).Set("ip", ip).Set("when", DateTime.UtcNow.ToString("o"));
             await ctxt.Cmd.DefineAsync(define).ConfigureAwait(false);
-            long logId = await ctxt.GetRowIdAsync("errorlog", logKey);
+            long logId = await ctxt.GetRowIdAsync("errorlog", logKey).ConfigureAwait(false);
             await ctxt.Cmd.PutLongStringAsync
             (
                 new LongStringPut()
@@ -40,7 +40,7 @@ namespace metastrings
                     itemId = logId,
                     longString = msg
                 }
-            );
+            ).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -56,18 +56,19 @@ namespace metastrings
             string sql = "SELECT id, created FROM errorlog WHERE created > @since ORDER BY created DESC";
             var select = Sql.Parse(sql);
             select.AddParam("@since", DateTime.UtcNow - TimeSpan.FromDays(maxDaysOld));
-            List<long> itemIds = await ctxt.ExecListAsync<long>(select);
+            List<long> itemIds = await ctxt.ExecListAsync<long>(select).ConfigureAwait(false);
             foreach (long itemId in itemIds)
             {
-                string logMessage = await LongStrings.GetStringAsync(ctxt, itemId, "msg", likePattern);
+                string logMessage = 
+                    await LongStrings.GetStringAsync(ctxt, itemId, "msg", likePattern).ConfigureAwait(false);
                 if (string.IsNullOrWhiteSpace(logMessage))
                     continue;
 
                 var entrySelect = Sql.Parse("SELECT userid, ip, created FROM errorlog WHERE id = @id");
                 entrySelect.AddParam("@id", itemId);
-                using (var reader = await ctxt.ExecSelectAsync(entrySelect))
+                using (var reader = await ctxt.ExecSelectAsync(entrySelect).ConfigureAwait(false))
                 {
-                    while (await reader.ReadAsync())
+                    while (await reader.ReadAsync().ConfigureAwait(false))
                     {
                         var newEntry = new ErrorLogEntry()
                         {
@@ -90,7 +91,7 @@ namespace metastrings
         /// <returns></returns>
         public static async Task ClearAsync(Context ctxt)
         {
-            await ctxt.Cmd.DropAsync("errorlog");
+            await ctxt.Cmd.DropAsync("errorlog").ConfigureAwait(false);
         }
     }
 }
