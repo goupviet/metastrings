@@ -5,6 +5,8 @@ using System.Collections.Concurrent;
 using System.Configuration;
 using System.Data;
 using System.Data.Common;
+using System.Data.SQLite;
+using System.IO;
 
 namespace metastrings
 {
@@ -20,16 +22,35 @@ namespace metastrings
         /// <param name="connStrName">Name of the database connections string in the config file</param>
         public Context(string connStrName = "metastrings")
         {
-            var connStrObj = ConfigurationManager.ConnectionStrings[connStrName];
-            if (connStrObj == null)
-                throw new ConfigurationErrorsException("metastrings connection string missing from config");
+            string dbConnStr;
+            if (!sm_dbConnStrs.TryGetValue(connStrName, out dbConnStr))
+            {
+                lock (sm_dbBuildLock)
+                {
+                    if (!sm_dbConnStrs.TryGetValue(connStrName, out dbConnStr))
+                    {
+                        dbConnStr = GetDbConnStr(connStrName);
 
-            var connStr = connStrObj.ConnectionString;
-            if (string.IsNullOrWhiteSpace(connStr))
-                throw new ConfigurationErrorsException("metastrings connection string empty in config");
+                        if (!IsDbServer(dbConnStr))
+                        {
+                            EnsureDbFile(dbConnStr);
+                            using (var db = new SqlLiteDb(dbConnStr))
+                                RunSql(db, new[] { "PRAGMA journal_mode = WAL", "PRAGMA synchronous = NORMAL" });
+                        }
 
-            Db = new MySqlDb(connStr);
+                        sm_dbConnStrs[connStrName] = dbConnStr;
+                    }
+                }
+            }
+
+            IsServerDb = IsDbServer(dbConnStr);
+
+            if (IsServerDb)
+                Db = new MySqlDb(dbConnStr);
+            else
+                Db = new SqlLiteDb(dbConnStr);
         }
+
 
         /// <summary>
         /// Clean up the database connection
@@ -202,5 +223,74 @@ namespace metastrings
                 m_postItemOps.Clear();
         }
         private List<string> m_postItemOps;
+
+        public static string GetDbConnStr(string connStrName = "metastrings")
+        {
+            var connStrObj = ConfigurationManager.ConnectionStrings[connStrName];
+            if (connStrObj == null)
+                throw new ConfigurationErrorsException("metastrings connection string missing from config");
+
+            var connStr = connStrObj.ConnectionString;
+            if (string.IsNullOrWhiteSpace(connStr))
+                throw new ConfigurationErrorsException("metastrings connection string empty in config");
+
+            if (!IsDbServer(connStr))
+            {
+                string dbFilePath = DbConnStrToFilePath(connStr);
+                connStr = "Data Source=" + dbFilePath;
+            }
+
+            return connStr;
+        }
+
+        public static void EnsureDbFile(string connStr)
+        {
+            string dbFilePath = DbConnStrToFilePath(connStr);
+            if (File.Exists(dbFilePath) && new FileInfo(dbFilePath).Length > 0)
+                return;
+
+            SQLiteConnection.CreateFile(dbFilePath);
+
+            using (var db = new SqlLiteDb(connStr))
+            {
+                RunSql(db, Tables.CreateSql);
+                RunSql(db, Names.CreateSql);
+                RunSql(db, Values.CreateSql);
+                RunSql(db, Items.CreateSql);
+                RunSql(db, LongStrings.CreateSql);
+            }
+        }
+
+        public static string DbConnStrToFilePath(string connStr)
+        {
+            if (IsDbServer(connStr))
+                throw new MetaStringsException("Connection string is not for file-based DB");
+
+            string filePath = connStr;
+
+            int equals = filePath.IndexOf('=');
+            if (equals > 0)
+                filePath = filePath.Substring(equals + 1);
+
+            filePath = filePath.Replace("[UserRoaming]", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Trim('\\') + "\\");
+            return filePath;
+        }
+
+        public static bool IsDbServer(string connStr)
+        {
+            bool isServer = connStr.IndexOf("Server=", 0, StringComparison.OrdinalIgnoreCase) >= 0;
+            return isServer;
+        }
+
+        public bool IsServerDb { get; private set; }
+
+        public static void RunSql(IDb db, string[] sqlQueries)
+        {
+            foreach (string sql in sqlQueries)
+                db.ExecuteSql(sql);
+        }
+
+        private static object sm_dbBuildLock = new object();
+        private static ConcurrentDictionary<string, string> sm_dbConnStrs = new ConcurrentDictionary<string, string>();
     }
 }

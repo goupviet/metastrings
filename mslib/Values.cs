@@ -15,6 +15,32 @@ namespace metastrings
     /// </summary>
     public static class Values
     {
+        public static string[] CreateSql
+        {
+            get
+            {
+                return new[]
+                {
+                    "CREATE TABLE bvalues\n(\n" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,\n" +
+                    "isNumeric BOOLEAN NOT NULL,\n" +
+                    "numberValue NUMBER NOT NULL,\n" +
+                    "stringValue TEXT\n" +
+                    ")",
+
+                    "CREATE UNIQUE INDEX idx_bvalues_unique ON bvalues (stringValue, numberValue, isNumeric)",
+
+                    "CREATE INDEX idx_bvalues_prefix ON bvalues (stringValue, isNumeric, id)",
+                    "CREATE INDEX idx_bvalues_number ON bvalues (numberValue, isNumeric, id)",
+
+                    // FORNOW - Revist metastrings(1) for how this is populated and accessed
+                    //          Until then MATCH is broken for SQLite DB config
+                    "CREATE VIRTUAL TABLE bvaluetext USING fts4 " +
+                    "(valueid INTEGER, stringSearchValue TEXT)"
+                };
+            }
+        }
+
         /// <summary>
         /// Return this to the factory original
         /// </summary>

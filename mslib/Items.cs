@@ -7,6 +7,50 @@ namespace metastrings
 {
     public static class Items
     {
+        public static string[] CreateSql
+        {
+            get
+            {
+                return new[]
+                {
+                    "CREATE TABLE items\n(\n" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,\n" +
+                    "tableid INTEGER NOT NULL,\n" +
+                    "valueid INTEGER NOT NULL,\n" +
+                    "created TIMESTAMP NOT NULL,\n" +
+                    "lastmodified TIMESTAMP NOT NULL,\n" +
+                    "FOREIGN KEY(tableid) REFERENCES tables(id),\n" +
+                    "FOREIGN KEY(valueid) REFERENCES bvalues(id)\n" +
+                    ")",
+
+                    "CREATE UNIQUE INDEX idx_items_valueid_tableid ON items (valueid, tableid)",
+                    "CREATE INDEX idx_items_created ON items (created)",
+                    "CREATE INDEX idx_items_lastmodified ON items (lastmodified)",
+
+                    "CREATE TABLE itemnamevalues\n(\n" +
+                    "itemid INTEGER NOT NULL,\n" +
+                    "nameid INTEGER NOT NULL,\n" +
+                    "valueid INTEGER NOT NULL,\n" +
+                    "PRIMARY KEY (itemid, nameid),\n" +
+                    "FOREIGN KEY(itemid) REFERENCES items(id),\n" +
+                    "FOREIGN KEY(nameid) REFERENCES names(id),\n" +
+                    "FOREIGN KEY(valueid) REFERENCES bvalues(id)\n" +
+                    ")",
+
+                    "CREATE VIEW itemvalues AS\n" +
+                    "SELECT\n" +
+                    "inv.itemid AS itemid,\n" +
+                    "inv.nameid AS nameid,\n" +
+                    "v.id AS valueid,\n" +
+                    "v.isNumeric AS isNumeric,\n" +
+                    "v.numberValue AS numberValue,\n" +
+                    "v.stringValue AS stringValue\n" +
+                    "FROM itemnamevalues AS inv\n" +
+                    "JOIN bvalues AS v ON v.id = inv.valueid"
+                };
+            }
+        }
+
         /// <summary>
         /// Remove all rows from the items table
         /// </summary>
@@ -47,7 +91,7 @@ namespace metastrings
                         else if (id >= 0)
                             return id;
 
-                        string insertSql = $"INSERT IGNORE INTO items (tableid, valueid, created, lastmodified) " +
+                        string insertSql = $"{ctxt.Db.InsertIgnore} items (tableid, valueid, created, lastmodified) " +
                                             $"VALUES (@tableId, @valueId, {ctxt.Db.UtcTimestampFunction}, {ctxt.Db.UtcTimestampFunction})";
                         id = await ctxt.Db.ExecuteInsertAsync(insertSql, cmdParams).ConfigureAwait(false);
                     }
@@ -99,10 +143,21 @@ namespace metastrings
                 string sql;
                 if (kvp.Value >= 0) // add-or-update it
                 {
-                    sql =
-                        $"INSERT INTO itemnamevalues (itemid, nameid, valueid) " +
-                        $"VALUES ({itemId}, {kvp.Key}, {kvp.Value}) " +
-                        $"ON DUPLICATE KEY UPDATE valueid = {kvp.Value}";
+                    if (ctxt.IsServerDb)
+                    {
+                        sql =
+                            $"INSERT INTO itemnamevalues (itemid, nameid, valueid) " +
+                            $"VALUES ({itemId}, {kvp.Key}, {kvp.Value}) " +
+                            $"ON DUPLICATE KEY UPDATE valueid = {kvp.Value}";
+                    }
+                    else
+                    {
+                        sql =
+                            $"INSERT INTO itemnamevalues (itemid, nameid, valueid) " +
+                            $"VALUES ({itemId}, {kvp.Key}, {kvp.Value}) " +
+                            $"ON CONFLICT(itemid, nameid) " +
+                            $"DO UPDATE SET valueid = {kvp.Value}";
+                    }
                 }
                 else // remove it
                     sql = $"DELETE FROM itemnamevalues WHERE itemid = {itemId} AND nameid = {kvp.Key}";

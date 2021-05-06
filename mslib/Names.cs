@@ -19,6 +19,24 @@ namespace metastrings
     /// </summary>
     public static class Names
     {
+        public static string[] CreateSql
+        {
+            get
+            {
+                return new[]
+                {
+                    "CREATE TABLE names\n(\n" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,\n" +
+                    "tableid INTEGER NOT NULL,\n" +
+                    "name TEXT NOT NULL,\n" +
+                    "isNumeric BOOLEAN NOT NULL,\n" +
+                    "FOREIGN KEY(tableid) REFERENCES tables(id)\n" +
+                    ")",
+                    "CREATE UNIQUE INDEX idx_names_name_tableid ON names (name, tableid)"
+                };
+            }
+        }
+        
         /// <summary>
         /// Remove all names rows from the database
         /// </summary>

@@ -40,8 +40,10 @@ namespace metastrings
                 Assert.AreEqual("blet\nmonkey", itemData["multi"]);
 
                 // NOTE: Full text search needs to see our recent changes
-                ctxt.Db.ExecuteSql("OPTIMIZE TABLE bvalues"); 
+                if (ctxt.IsServerDb)
+                    ctxt.Db.ExecuteSql("OPTIMIZE TABLE bvalues"); 
 
+                if (ctxt.IsServerDb)
                 {
                     Select select =
                         Sql.Parse

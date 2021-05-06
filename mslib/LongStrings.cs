@@ -10,6 +10,23 @@ namespace metastrings
     /// </summary>
     public static class LongStrings
     {
+        public static string[] CreateSql
+        {
+            get
+            {
+                return new[]
+                {
+                    "CREATE TABLE longstrings\n(\n" +
+                    "itemId INTEGER NOT NULL,\n" +
+                    "name TEXT NOT NULL,\n" +
+                    "longstring TEXT NOT NULL,\n" +
+                    "PRIMARY KEY (itemid, name),\n" +
+                    "FOREIGN KEY(itemId) REFERENCES items(id)\n" +
+                    ")"
+                };
+            }
+        }
+
         /// <summary>
         /// Given an item and a name, save a long string.
         /// </summary>

@@ -17,6 +17,21 @@ namespace metastrings
     /// </summary>
     public static class Tables
     {
+        public static string[] CreateSql
+        {
+            get
+            {
+                return new[]
+                {
+                    "CREATE TABLE tables\n(\n" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,\n" +
+                    "name TEXT NOT NULL UNIQUE,\n" +
+                    "isNumeric BOOLEAN NOT NULL\n" +
+                    ")"
+                };
+            }
+        }
+
         /// <summary>
         /// Remove all tables from the database
         /// </summary>
