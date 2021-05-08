@@ -176,7 +176,7 @@ namespace metastrings
             Assert.AreEqual("@monkey", criteria2.paramName);
 
             sql = "SELECT foo, fred, blet FROM something " +
-                    "WHERE foo = @foo AND blet > @monkey AND amazing MATCHES @greatness";
+                    "WHERE foo = @foo AND blet > @monkey AND amazing LIKE @greatness";
             select = Sql.Parse(sql);
             Assert.AreEqual("foo|fred|blet", string.Join('|', select.select));
             Assert.AreEqual("something", select.from);
@@ -190,7 +190,7 @@ namespace metastrings
             Assert.AreEqual(">", criteria2.op);
             Assert.AreEqual("@monkey", criteria2.paramName);
             Assert.AreEqual("amazing", criteria3.name);
-            Assert.AreEqual("MATCHES", criteria3.op);
+            Assert.AreEqual("LIKE", criteria3.op);
             Assert.AreEqual("@greatness", criteria3.paramName);
 
             sql = "SELECT foo FROM something WHERE !foo = @foo";

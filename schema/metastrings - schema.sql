@@ -30,8 +30,7 @@ CREATE TABLE `bvalues` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_uniq_prefix_number` (`stringValue`,`numberValue`,`isNumeric`),
   KEY `idx_bvalues_number` (`numberValue`,`isNumeric`,`id`),
-  KEY `idx_bvalues_prefix` (`stringValue`,`isNumeric`,`id`),
-  FULLTEXT KEY `idx_bvalues_fulltext` (`stringValue`)
+  KEY `idx_bvalues_prefix` (`stringValue`,`isNumeric`,`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=601159 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

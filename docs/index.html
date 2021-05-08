@@ -259,7 +259,7 @@ namespace MsFileIndexer
                         string query = args[1];
                         using (var ctxt = new Context())
                         {
-                            var select = Sql.Parse("SELECT value FROM files WHERE tokens MATCHES @query");
+                            var select = Sql.Parse("SELECT value FROM files WHERE tokens LIKE @query");
                             select.AddParam("@query", query);
                             var resultFilePaths = await ctxt.ExecListAsync<string>(select);
                             Console.WriteLine("Results: " + resultFilePaths.Count);
@@ -359,9 +359,9 @@ namespace MsFileIndexer
         in the current directory.
         It also writes the query results to that file, so you get a complete query-to-results snapshot.
         <pre>
-> select id, title from beats where title matches @title
+> select id, title from beats where title like @title
 
-@title: Fresh
+@title: Fresh%
 
 id: 734348
 title: Fresh One

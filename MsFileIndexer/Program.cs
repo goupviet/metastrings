@@ -50,7 +50,7 @@ namespace MsFileIndexer
                         string query = args[1];
                         using (var ctxt = new Context())
                         {
-                            var select = Sql.Parse("SELECT value FROM files WHERE tokens MATCHES @query");
+                            var select = Sql.Parse("SELECT value FROM files WHERE tokens LIKE @query");
                             select.AddParam("@query", query);
                             var resultFilePaths = await ctxt.ExecListAsync<string>(select);
                             Console.WriteLine("Results: " + resultFilePaths.Count);

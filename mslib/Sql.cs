@@ -420,22 +420,7 @@ namespace metastrings
                         var nameObj = nameObjs[name];
                         var cleanName = Utils.CleanName(name);
 
-                        if (where.op.Equals("matches", StringComparison.OrdinalIgnoreCase))
-                        {
-                            if (nameObj == null)
-                            {
-                                wherePart += "1 = 0"; // name doesn't exist, no match!
-                            }
-                            else
-                            {
-                                string column = cleanName == "value" ? "bv.stringValue" : $"iv{cleanName}.stringValue";
-                                string match = $"MATCH({column}) AGAINST ({where.paramName} IN BOOLEAN MODE)";
-                                wherePart += match;
-                                selectPart += ", " + match + " AS relevance";
-                                query.AddOrder("relevance", descending: true);
-                            }
-                        }
-                        else if (cleanName == "id")
+                        if (cleanName == "id")
                         {
                             wherePart += $"i.id {where.op} {where.paramName}";
                         }

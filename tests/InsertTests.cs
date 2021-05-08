@@ -39,20 +39,15 @@ namespace metastrings
                 Assert.AreEqual("foobar", itemData["str"]);
                 Assert.AreEqual("blet\nmonkey", itemData["multi"]);
 
-                // NOTE: Full text search needs to see our recent changes
-                if (ctxt.IsServerDb)
-                    ctxt.Db.ExecuteSql("OPTIMIZE TABLE bvalues"); 
-
-                if (ctxt.IsServerDb)
                 {
                     Select select =
                         Sql.Parse
                         (
                             "SELECT value, multi\n" +
                             $"FROM fun\n" +
-                            "WHERE multi MATCHES @search"
+                            "WHERE multi LIKE @search"
                         );
-                    select.AddParam("@search", "monkey");
+                    select.AddParam("@search", "%monkey%");
                     using (var reader = ctxt.ExecSelectAsync(select).Result)
                     {
                         if (!reader.ReadAsync().Result)

@@ -197,7 +197,6 @@ namespace metastrings
             new HashSet<string>
             {
                 "=", "<>", ">", ">=", "<", "<=",
-                "matches",
                 "like"
             };
 
