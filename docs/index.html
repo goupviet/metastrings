@@ -61,7 +61,6 @@
             <li><a href="#whatis">What is metastrings?</a></li>
             <li><a href="#why">Why metastrings?</a></li>
             <li><a href="#installation">Installation</a></li>
-            <li><a href="#sample">Sample Code</a></li>
         </ul>
 		
         <div class=contentGroupHeader>Contact</div>
@@ -99,8 +98,8 @@
     <div id=contentDiv>
         <div id=pageHeader>metastrings - a NoSQL database</div>
         <h1><a name=whatis>What is metastrings?</a></h1>
-        <b>metastrings</b> is a NoSQL database built on top of MySQL.  
-		It consists of a MySQL schema, and a .NET class library that you program against.
+        <b>metastrings</b> is a NoSQL database built on top of MySQL or SQLite.  
+		It consists of a .NET class library that you program against, and either a MySQL schema, or a SQLite file.
 		
         <h1><a name=why>Why metastrings?</a></h1>
         <ol>
@@ -110,192 +109,34 @@
             <li>Automatic indexing</li>
 		</ol>
 		
-		metastrings powers <a target=_blank href="https://www.balognabeats.com">Balogna Beats</a>, 
-		a web application for creating, sharing, and enjoying drum beats.
-		
-		<br>
-		<br>
-        
-		See how simple it is to add a row to a table:
-<pre class="prettyprint lang-cs">
-public void CreateUser(string name, string email)
-{
-	...
-	// Build up the UPSERT using a Define object
-	Define define = new Define("users", name); // table name "users", primary key value is user's name
-
-	// Set the column names and values
-	define.Set("email", email).Set("name", name).Set("logintoken", "").Set("blocked", 0);
-
-	// Do the UPSERT
-	await ctxt.Cmd.DefineAsync(define);
-	...
-</pre>
-		Just load up the Define object and have ctxt.Cmd.DefineAsync do the work.
-		Think of how much SQL machination that would have taken!
-		No CREATE, no INSERT, no ON DUPLICATE KEY UPDATE, just Define.  
-		Say what you want, and that's what you'll get.
-		
-		<br>
-		<br>
-		
-		You could have done this with no "users" table yet defined; the DefineAsync function creates anything new.
-		
-		<br>
-		<br>
-		
-		To add a new column, load up a Define with another call to Set for the new column and process that, no ALTER anything.
-
-		<br>
-		<br>
-		
-		To access data in a metastrings table to get the row IDs and titles from the beats table:
-<pre class="prettyprint lang-cs">
-var select =
-	Sql.Parse
-	(
-		"SELECT id, title " +
-		"FROM beats " +
-		"WHERE userid = @userId " +
-		"ORDER BY title ASC"
-	);
-select.AddParam("@userId", userId);
-var beatsDict = await ctxt.ExecDictAsync<long, string>(select);
-var beatsObjs = beatsDict.Entries.Select((kvp) => new SearchBeat() { id = kvp.Key, title = kvp.Value }).ToList();
-</pre>	
-		The query looks for beats of a particular userid.  
-		No need to specify an index; all columns are automatically indexed.
-		One less thing to worry about.
-		
-		<br>
-		<br>
-		
-		See the Sql.Parse call, it takes the metastrings SQL query and turns into a MySQL SQL query,
-		that's where the magic happens.  You can use the <a href="#Metaq">metaq</a> utility to study the transformation.
-
-		<br>
-		<br>
-
-		So you just send your SQL in, pass in your parameters, then you can do typical DB programming, or like here, work with collections,
-		like ExecDictAsync.
-		ExecDictAsync takes a Select object and returns a <a name=ListDictionary>ListDictionary</a> object; 
-		the ListDictionary preserves the result ordering.  
-		The Entries property of the ListDictionary is used for the LINQ, and it honors the order of the results.
-		
-		<br>
-		<br>
-		
-		Again, how much more SQL machination would that have taken?
-		
         <h2><a name="installation">Installation</a></h2>
-		<ol>
+		<ul>
 			<li>Get the source from <a target=_blank href="https://github.com/michaelsballoni/metastrings2">GitHub</a>.
-			<li>Build the source using Microsoft Visual Studio 2019.
+			<li>Build the source using Microsoft Visual Studio 2019 or newer.
+			
+			<li><h3>If using SQLite...</h3>
+			<li>Create a DB connection string like this:
+			<br>
+			<pre>&lt;add name="metastrings" connectionString="Data Source=[UserRoaming]metastrings.db" /&gt;</pre>
+			
+			<li><h3>If using MySQL...</h3>
 			<li>Provision a new MySQL database schema, call it "metastrings".
 			<li>Create the metastring schema using the "metastrings - schema.sql" file in the source repository under "schema"
-			<li>Integrate the metastrings project into your solution by addding a reference to metastring's mslib project
-			<li>
-				In your application project configuration file, 
-				create a DB connection string setting named "metastrings" with a connection string 
-				addressing the MySQL database and the metastrings schema you created above
-			</li>
-			<li>To start using metastrings in your code, know that metastrings uses the "metastrings" namespace
-			<li>See the included MsFileIndexer project (code below) for a simple example showing how to use Define and Select to UPSERT and query</li>
-		</ol>
+			<li>Create a DB connection string like this:
+			<br>
+			<pre>&lt;add name="metastrings" connectionString="Server=localhost; Database=metastrings; Uid=michael; Pwd=balloni;"/&gt;</pre>
+			
+			<li><h3>Integrate the metastrings project into your solution...</h3>
+			<li>Add a reference to metastring's mslib project
+			<li>Put the connection string in your application project configuration file.
+			
+			<li><h3>To start using metastrings in your code...</h3>
+			<li>metastrings uses the "metastrings" namespace
+			<li>Use the Define class for UPSERTs
+			<li>Use the Sql class for SELECTs
+			<li>Use the Command's class's member functions for all other functionality, such as DELETEs and DROPs
+		</ul>
 		
-        <h2><a name="sample">Sample Code</a></h2>
-		Here is sample code for a simple metastrings application.  
-		You either load file path tokens into the DB, or query the DB for matching file paths.
-<pre class="prettyprint lang-cs">
-using System;
-using System.Threading.Tasks;
-using System.IO;
-
-using metastrings;
-
-namespace MsFileIndexer
-{
-    class Program
-    {
-        static async Task<int> Main(string[] args)
-        {
-            if (args.Length != 2)
-            {
-                Console.WriteLine("MsFileIndex -load &lt;dir path&gt; OR -query \"&lt;query terms&gt;\"");
-                return 0;
-            }
-
-            switch (args[0])
-            {
-                case "-load":
-                    {
-                        using (var ctxt = new Context())
-                        {
-                            string dirPath = args[1];
-                            string[] filePaths = Directory.GetFiles(dirPath, "*", SearchOption.AllDirectories);
-                            Console.WriteLine("Files found: " + filePaths.Length);
-
-                            int outYet = 0;
-                            Define define = new Define() { table = "files" }; // reuse the define
-                            Command cmd = ctxt.Cmd; // reuse the cmd
-                            foreach (string filePath in filePaths)
-                            {
-                                define.metadata.Clear();
-
-                                define.key = filePath;
-                                define.Set("tokens", filePath.Replace(Path.DirectorySeparatorChar, ' '));
-
-                                await cmd.DefineAsync(define);
-
-                                if ((++outYet % 1000) == 0)
-                                    Console.WriteLine(outYet);
-                            }
-                        }
-                    }
-                    break;
-
-                case "-query":
-                    {
-                        string query = args[1];
-                        using (var ctxt = new Context())
-                        {
-                            var select = Sql.Parse("SELECT value FROM files WHERE tokens LIKE @query");
-                            select.AddParam("@query", query);
-                            var resultFilePaths = await ctxt.ExecListAsync<string>(select);
-                            Console.WriteLine("Results: " + resultFilePaths.Count);
-                            foreach (var result in resultFilePaths)
-                                Console.WriteLine(result);
-                        }
-                    }
-                    break;
-            }
-
-            return 0;
-        }
-    }
-}
-</pre>
-		
-        <h2>metastrings vs. metastrings2</h2>
-        In github you'll notice metastrings and metastrings2 projects.
-        
-		<br>
-		<br>
-        
-		metastrings(v1) supported a wide variety applications using SqLite or MySQL,
-        but had an Achille's heel because the schema lacked unique indexes, 
-        requiring locking tables to maintaining data integrity.
-        
-		<br>
-		<br>
-		
-        metastring(v2) is focused on using MySQL, and it solves the ingest problem by limiting value lengths
-        and using unique indexes.  A separate mechanism is provided for working with long strings.
-        
-		<br>
-		<br>
-        
-		Documentation for metastrings(v1) is found <a href="v1/index.html">here</a>
 		
         <h3><a name=lib-types>Implementation types</a></h3>
         These classes implement the core NoSQL functionality
@@ -365,7 +206,6 @@ namespace MsFileIndexer
 
 id: 734348
 title: Fresh One
-relevance: 2.353236198425293
 ===
 Results: 1
 

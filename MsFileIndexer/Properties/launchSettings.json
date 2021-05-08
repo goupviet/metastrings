@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "MsFileIndexer": {
-      "commandName": "Project",
-      "commandLineArgs": "-query Sunset"
-    }
-  }
-}
