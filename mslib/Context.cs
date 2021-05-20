@@ -21,33 +21,50 @@ namespace metastrings
         /// <param name="dbConnStr">Database connection string...we're out of the config business</param>
         public Context(string dbConnStr)
         {
-            string dummy;
-            if (!sm_dbConnStrs.TryGetValue(dbConnStr, out dummy))
+            string actualDbConnStr;
+            if (!sm_dbConnStrs.TryGetValue(dbConnStr, out actualDbConnStr))
             {
                 lock (sm_dbBuildLock)
                 {
-                    if (!sm_dbConnStrs.TryGetValue(dbConnStr, out dummy))
+                    if (!sm_dbConnStrs.TryGetValue(dbConnStr, out actualDbConnStr))
                     {
-                        if (!IsDbServer(dbConnStr))
+                        actualDbConnStr = dbConnStr;
+
+                        if (!IsDbServer(actualDbConnStr))
                         {
-                            EnsureDbFile(dbConnStr);
-                            using (var db = new SqlLiteDb(dbConnStr))
+                            string dbFilePath = DbConnStrToFilePath(actualDbConnStr);
+                            actualDbConnStr = "Data Source=" + dbFilePath;
+
+                            if (!(File.Exists(dbFilePath) && new FileInfo(dbFilePath).Length > 0))
+                            {
+                                SQLiteConnection.CreateFile(dbFilePath);
+
+                                using (var db = new SqlLiteDb(actualDbConnStr))
+                                {
+                                    RunSql(db, Tables.CreateSql);
+                                    RunSql(db, Names.CreateSql);
+                                    RunSql(db, Values.CreateSql);
+                                    RunSql(db, Items.CreateSql);
+                                    RunSql(db, LongStrings.CreateSql);
+                                }
+                            }
+
+                            using (var db = new SqlLiteDb(actualDbConnStr))
                                 RunSql(db, new[] { "PRAGMA journal_mode = WAL", "PRAGMA synchronous = NORMAL" });
                         }
 
-                        sm_dbConnStrs[dbConnStr] = "foobar";
+                        sm_dbConnStrs[dbConnStr] = actualDbConnStr;
                     }
                 }
             }
 
-            IsServerDb = IsDbServer(dbConnStr);
+            IsServerDb = IsDbServer(actualDbConnStr);
 
             if (IsServerDb)
-                Db = new MySqlDb(dbConnStr);
+                Db = new MySqlDb(actualDbConnStr);
             else
-                Db = new SqlLiteDb(dbConnStr);
+                Db = new SqlLiteDb(actualDbConnStr);
         }
-
 
         /// <summary>
         /// Clean up the database connection
@@ -221,22 +238,10 @@ namespace metastrings
         }
         private List<string> m_postItemOps;
 
-        public static void EnsureDbFile(string connStr)
+        public static string GetDbConnStr(string dbConnStr)
         {
-            string dbFilePath = DbConnStrToFilePath(connStr);
-            if (File.Exists(dbFilePath) && new FileInfo(dbFilePath).Length > 0)
-                return;
 
-            SQLiteConnection.CreateFile(dbFilePath);
-
-            using (var db = new SqlLiteDb(connStr))
-            {
-                RunSql(db, Tables.CreateSql);
-                RunSql(db, Names.CreateSql);
-                RunSql(db, Values.CreateSql);
-                RunSql(db, Items.CreateSql);
-                RunSql(db, LongStrings.CreateSql);
-            }
+            return dbConnStr;
         }
 
         public static string DbConnStrToFilePath(string connStr)
@@ -250,7 +255,7 @@ namespace metastrings
             if (equals > 0)
                 filePath = filePath.Substring(equals + 1);
 
-            filePath = filePath.Replace("[UserRoaming]", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Trim('\\') + "\\");
+            filePath = filePath.Replace("[UserRoaming]", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
             return filePath;
         }
 
