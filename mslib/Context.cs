@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.Configuration;
 using System.Data;
 using System.Data.Common;
 using System.Data.SQLite;
@@ -19,18 +18,16 @@ namespace metastrings
         /// <summary>
         /// Create a context for a MySQL database connection
         /// </summary>
-        /// <param name="connStrName">Name of the database connections string in the config file</param>
-        public Context(string connStrName = "metastrings")
+        /// <param name="dbConnStr">Database connection string...we're out of the config business</param>
+        public Context(string dbConnStr)
         {
-            string dbConnStr;
-            if (!sm_dbConnStrs.TryGetValue(connStrName, out dbConnStr))
+            string dummy;
+            if (!sm_dbConnStrs.TryGetValue(dbConnStr, out dummy))
             {
                 lock (sm_dbBuildLock)
                 {
-                    if (!sm_dbConnStrs.TryGetValue(connStrName, out dbConnStr))
+                    if (!sm_dbConnStrs.TryGetValue(dbConnStr, out dummy))
                     {
-                        dbConnStr = GetDbConnStr(connStrName);
-
                         if (!IsDbServer(dbConnStr))
                         {
                             EnsureDbFile(dbConnStr);
@@ -38,7 +35,7 @@ namespace metastrings
                                 RunSql(db, new[] { "PRAGMA journal_mode = WAL", "PRAGMA synchronous = NORMAL" });
                         }
 
-                        sm_dbConnStrs[connStrName] = dbConnStr;
+                        sm_dbConnStrs[dbConnStr] = "foobar";
                     }
                 }
             }
@@ -223,25 +220,6 @@ namespace metastrings
                 m_postItemOps.Clear();
         }
         private List<string> m_postItemOps;
-
-        public static string GetDbConnStr(string connStrName = "metastrings")
-        {
-            var connStrObj = ConfigurationManager.ConnectionStrings[connStrName];
-            if (connStrObj == null)
-                throw new ConfigurationErrorsException("metastrings connection string missing from config");
-
-            var connStr = connStrObj.ConnectionString;
-            if (string.IsNullOrWhiteSpace(connStr))
-                throw new ConfigurationErrorsException("metastrings connection string empty in config");
-
-            if (!IsDbServer(connStr))
-            {
-                string dbFilePath = DbConnStrToFilePath(connStr);
-                connStr = "Data Source=" + dbFilePath;
-            }
-
-            return connStr;
-        }
 
         public static void EnsureDbFile(string connStr)
         {
