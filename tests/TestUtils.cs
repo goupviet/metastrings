@@ -8,7 +8,7 @@ namespace metastrings
     {
         public static Context GetCtxt()
         {
-            return new Context("Data Source=[UserRoaming]metastrings-tests.db");
+            return new Context("Data Source=[UserRoaming]/metastrings-tests.db");
         }
     }
 }
