@@ -256,6 +256,12 @@ namespace metastrings
                 filePath = filePath.Substring(equals + 1);
 
             filePath = filePath.Replace("[UserRoaming]", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+            filePath = filePath.Replace("[MyDocuments]", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+    
+            string directoryPath = Path.GetDirectoryName(filePath);
+            if (!Directory.Exists(directoryPath))
+                Directory.CreateDirectory(directoryPath);
+            
             return filePath;
         }
 
