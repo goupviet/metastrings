@@ -64,20 +64,16 @@ namespace metastrings
         /// <param name="ctxt">Database connection</param>
         /// <param name="itemId">The item to look in</param>
         /// <param name="name">The name to match</param>
-        /// <param name="like">LIKE criteria to match</param>
         /// <returns>Long string value if found, null otherwise</returns>
-        public static async Task<string> GetStringAsync(Context ctxt, long itemId, string name, string like = "")
+        public static async Task<string> GetStringAsync(Context ctxt, long itemId, string name)
         {
             var cmdParams =
                 new Dictionary<string, object>
                 {
                     { "@itemid", itemId },
-                    { "@name", name },
-                    { "@like", like }
+                    { "@name", name }
                 };
             string storeSql = "SELECT longstring FROM longstrings WHERE itemid = @itemid AND name = @name";
-            if (!string.IsNullOrWhiteSpace(like))
-                storeSql += " AND longstring LIKE @like";
             using (var reader = await ctxt.Db.ExecuteReaderAsync(storeSql, cmdParams).ConfigureAwait(false))
             {
                 if (!await reader.ReadAsync().ConfigureAwait(false))
