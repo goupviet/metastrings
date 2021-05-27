@@ -36,15 +36,10 @@ namespace metastrings
             }
         }
 
-        public MsTrans BeginTrans(IsolationLevel level = IsolationLevel.Unspecified)
+        public MsTrans BeginTrans()
         {
             if (DbTrans == null)
-            {
-                if (level == IsolationLevel.Unspecified)
-                    DbTrans = DbConn.BeginTransaction();
-                else
-                    DbTrans = DbConn.BeginTransaction(level);
-            }
+                DbTrans = DbConn.BeginTransaction();
             return new MsTrans(this);
         }
 

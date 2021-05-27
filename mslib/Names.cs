@@ -19,7 +19,7 @@ namespace metastrings
     /// </summary>
     public static class Names
     {
-        public static string[] CreateSql
+        internal static string[] CreateSql
         {
             get
             {
@@ -154,6 +154,13 @@ namespace metastrings
                 return obj;
             }
         }
+
+        /// <summary>
+        /// Given a name ID, see if it's numeric
+        /// </summary>
+        /// <param name="ctxt">Database connection</param>
+        /// <param name="id">Name database row ID</param>
+        /// <returns>true if the name is numeric</returns>
         public static async Task<bool> GetNameIsNumericAsync(Context ctxt, int id)
         {
             if (id < 0)
@@ -211,10 +218,7 @@ namespace metastrings
             }
         }
 
-        /// <summary>
-        /// Clear all the caches of this names type
-        /// </summary>
-        public static void ClearCaches()
+        internal static void ClearCaches()
         {
             sm_cache.Clear();
             sm_cacheBack.Clear();

@@ -10,13 +10,13 @@ using System.IO;
 namespace metastrings
 {
     /// <summary>
-    /// Context manages the MySQL database connection
-    /// and provides many useful query helper functions
+    /// Context manages the database connection
+    /// and provides useful query helper functions
     /// </summary>
     public class Context : IDisposable
     {
         /// <summary>
-        /// Create a context for a MySQL database connection
+        /// Create a context for a database connection
         /// </summary>
         /// <param name="dbConnStr">Database connection string...we're out of the config business</param>
         public Context(string dbConnStr)
@@ -66,9 +66,6 @@ namespace metastrings
                 Db = new SqlLiteDb(actualDbConnStr);
         }
 
-        /// <summary>
-        /// Clean up the database connection
-        /// </summary>
         public void Dispose()
         {
             if (Db != null)
@@ -82,9 +79,14 @@ namespace metastrings
         }
 
         /// <summary>
-        /// The MySQL database connection
+        /// The database connection
         /// </summary>
         public IDb Db { get; private set; }
+
+        /// <summary>
+        /// See if it's MySQL, not SQLite
+        /// </summary>
+        public bool IsServerDb { get; private set; }
 
         /// <summary>
         /// Create a new Command object using this Context
@@ -94,17 +96,17 @@ namespace metastrings
         /// <summary>
         /// Transactions are supported, 
         /// but should not be used around any code affecting data 
-        /// in the Table, Name, Value metastrings database
+        /// in the Table, Name, Value, etc. metastrings database
+        /// as rollbacks would break the global in-memory caching
         /// </summary>
-        /// <param name="level">Transaction isolation level</param>
-        /// <returns></returns>
-        public MsTrans BeginTrans(IsolationLevel level = IsolationLevel.Unspecified)
+        /// <returns>Transaction object</returns>
+        public MsTrans BeginTrans()
         {
-            return Db.BeginTrans(level);
+            return Db.BeginTrans();
         }
 
         /// <summary>
-        /// Query helper function to get a read for a query
+        /// Query helper function to get a reader for a query
         /// </summary>
         /// <param name="select">Query to execute</param>
         /// <returns>Reader to get results from</returns>
@@ -134,7 +136,8 @@ namespace metastrings
         /// <returns>64-bit result value, or -1 if processing fails</returns>
         public async Task<long> ExecScalar64Async(Select select)
         {
-            long val = Utils.ConvertDbInt64(await ExecScalarAsync(select).ConfigureAwait(false));
+            object result = await ExecScalarAsync(select).ConfigureAwait(false);
+            long val = Utils.ConvertDbInt64(result);
             return val;
         }
 
@@ -158,7 +161,7 @@ namespace metastrings
         /// Query helper to get a dictionary of results from a single-column query
         /// </summary>
         /// <param name="select">Query to execute</param>
-        /// <returns>List of results of type T</returns>
+        /// <returns>ListDictionary of results of type K, V</returns>
         public async Task<ListDictionary<K, V>> ExecDictAsync<K, V>(Select select)
         {
             var values = new ListDictionary<K, V>();
@@ -171,11 +174,11 @@ namespace metastrings
         }
 
         /// <summary>
-        /// Get the 64-bit items table row ID for a given table and key
+        /// Get the items table row ID for a given table and key
         /// </summary>
-        /// <param name="tableName">What table are we looking in?</param>
-        /// <param name="key">What is the key to the item in the table?</param>
-        /// <returns>64-bit row ID, or -1 if not found</returns>
+        /// <param name="tableName">Table to look in</param>
+        /// <param name="key">Key of the item in the table</param>
+        /// <returns>Row ID, or -1 if not found</returns>
         public async Task<long> GetRowIdAsync(string tableName, object key)
         {
             Utils.ValidateTableName(tableName, "GetRowId");
@@ -188,21 +191,21 @@ namespace metastrings
         /// <summary>
         /// Get the object value from the given table and items table ID
         /// </summary>
-        /// <param name="tableName">What table are we looking in?</param>
-        /// <param name="id">What is the items table row ID we are looking for?</param>
+        /// <param name="table">Table to look in</param>
+        /// <param name="id">Row ID to look for</param>
         /// <returns>object value if found, null otherwise</returns>
-        public async Task<object> GetRowValueAsync(string tableName, long id)
+        public async Task<object> GetRowValueAsync(string table, long id)
         {
-            Utils.ValidateTableName(tableName, "GetRowValueAsync");
-            Select select = Sql.Parse($"SELECT value FROM {tableName} WHERE id = @id");
+            Utils.ValidateTableName(table, "GetRowValueAsync");
+            Select select = Sql.Parse($"SELECT value FROM {table} WHERE id = @id");
             select.AddParam("@id", id);
             object val = await ExecScalarAsync(select).ConfigureAwait(false);
             return val;
         }
 
         /// <summary>
-        /// Process all those queries that piled up, used by Command's Define functions
-        /// This is a rare case of where using a transaction is well-advised
+        /// Process queries that piled up by Command's Define function
+        /// This is the rare case where using a transaction is well-advised
         /// </summary>
         public async Task ProcessPostOpsAsync()
         {
@@ -225,26 +228,22 @@ namespace metastrings
                 ScopeTiming.RecordScope("ProcessItemPostOps", totalTimer);
             }
         }
-        public void AddPostOp(string sql)
+
+        internal void AddPostOp(string sql)
         {
             if (m_postItemOps == null)
                 m_postItemOps = new List<string>();
             m_postItemOps.Add(sql);
         }
-        public void ClearPostOps()
+
+        internal void ClearPostOps()
         {
             if (m_postItemOps != null)
                 m_postItemOps.Clear();
         }
         private List<string> m_postItemOps;
 
-        public static string GetDbConnStr(string dbConnStr)
-        {
-
-            return dbConnStr;
-        }
-
-        public static string DbConnStrToFilePath(string connStr)
+        private static string DbConnStrToFilePath(string connStr)
         {
             if (IsDbServer(connStr))
                 throw new MetaStringsException("Connection string is not for file-based DB");
@@ -265,15 +264,13 @@ namespace metastrings
             return filePath;
         }
 
-        public static bool IsDbServer(string connStr)
+        private static bool IsDbServer(string connStr)
         {
             bool isServer = connStr.IndexOf("Server=", 0, StringComparison.OrdinalIgnoreCase) >= 0;
             return isServer;
         }
 
-        public bool IsServerDb { get; private set; }
-
-        public static void RunSql(IDb db, string[] sqlQueries)
+        private static void RunSql(IDb db, string[] sqlQueries)
         {
             foreach (string sql in sqlQueries)
                 db.ExecuteSql(sql);

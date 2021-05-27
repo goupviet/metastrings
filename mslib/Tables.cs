@@ -17,7 +17,7 @@ namespace metastrings
     /// </summary>
     public static class Tables
     {
-        public static string[] CreateSql
+        internal static string[] CreateSql
         {
             get
             {
@@ -142,7 +142,7 @@ namespace metastrings
             }
         }
 
-        public static void ClearCaches()
+        internal static void ClearCaches()
         {
             sm_cache.Clear();
             sm_cacheBack.Clear();

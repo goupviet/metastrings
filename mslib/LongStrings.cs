@@ -5,12 +5,12 @@ using System.Collections.Generic;
 namespace metastrings
 {
     /// <summary>
-    /// Manage long strings, keeping them out of the bvalues MySQL table,
+    /// Manage long strings, keeping them out of the bvalues SQL table,
     /// allowing bvalues to have a UNIQUE index, ensuring database integrity
     /// </summary>
     public static class LongStrings
     {
-        public static string[] CreateSql
+        internal static string[] CreateSql
         {
             get
             {

@@ -2,18 +2,16 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Data.Common;
-using System.Data;
 
 namespace metastrings
 {
     /// <summary>
     /// Generic database type
-    /// Was useful when metastrings worked with MySQL and SqLite
-    /// Left here in case another engine swaps MySQL out, like Posgres
+    /// Useful when working with MySQL vs. SQLite
     /// </summary>
     public interface IDb : IDisposable
     {
-        MsTrans BeginTrans(IsolationLevel level = IsolationLevel.Unspecified);
+        MsTrans BeginTrans();
         void Commit();
         int TransCount { get; set; }
         void FreeTrans();

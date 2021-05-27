@@ -5,9 +5,12 @@ using System.Text;
 
 namespace metastrings
 {
+    /// <summary>
+    /// Items are the rows in the metastrings schema
+    /// </summary>
     public static class Items
     {
-        public static string[] CreateSql
+        internal static string[] CreateSql
         {
             get
             {

@@ -31,16 +31,10 @@ namespace metastrings
             }
         }
 
-        public MsTrans BeginTrans(IsolationLevel level = IsolationLevel.Unspecified)
+        public MsTrans BeginTrans()
         {
             if (DbTrans == null)
-            {
-                // NOTE: SQLite doesn't seem to support isolation levels...buy MySQL does!
-                //if (level == IsolationLevel.Unspecified)
                 DbTrans = DbConn.BeginTransaction();
-                //else
-                //    DbTrans = DbConn.BeginTransaction(level);
-            }
             return new MsTrans(this);
         }
 

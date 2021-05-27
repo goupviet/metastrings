@@ -2,16 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Newtonsoft.Json;
-
 namespace metastrings
 {
     /// <summary>
-    /// A hybrid class, Dictionary with a List used to track order when added
+    /// A hybrid class, Dictionary with a List used to track order added
+    /// Add-only, read-only...makes for clean code!
+    /// Use the Entries properties to iterate over the Key-Values in order added.
     /// </summary>
     /// <typeparam name="K"></typeparam>
     /// <typeparam name="V"></typeparam>
-    [JsonObject(MemberSerialization.OptIn)]
     public class ListDictionary<K, V>
     {
         public ListDictionary()
@@ -48,9 +47,7 @@ namespace metastrings
             m_list.Add(new KeyValuePair<K, V>(key, val));
         }
 
-        [JsonProperty] 
         private List<KeyValuePair<K, V>> m_list { get; set; } = new List<KeyValuePair<K, V>>();
-        [JsonProperty] 
         private Dictionary<K, V> m_dict { get; set; } = new Dictionary<K, V>();
     }
 }

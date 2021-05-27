@@ -6,6 +6,9 @@ using System.Linq;
 
 namespace metastrings
 {
+    /// <summary>
+    /// API for turning SQL strings to and from NoSQL query objects
+    /// </summary>
     public static class Sql
     {
         private enum SqlState
@@ -516,14 +519,6 @@ namespace metastrings
 
             string sql = sb.ToString();
             return sql;
-        }
-
-        private static string CalculateStringColumn(string tableName, bool isServerDb)
-        {
-            string str = $"{tableName}.stringValue";
-            if (!isServerDb) // SQLite decides to cast "79" into 79 with just IFNULL...so...
-                str = $"CAST({str} AS varchar)";
-            return str;
         }
     }
 }

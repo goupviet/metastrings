@@ -3,50 +3,6 @@ using System.Collections.Generic;
 
 namespace metastrings
 {
-    public class MultiDefine
-    {
-        public string table { get; set; }
-
-        // item value -> metadata name-> value
-        public Dictionary<object, Dictionary<string, object>> metadata { get; set; }
-
-        // helper function
-        public void Set(object itemValue, string metadataName, object metadataValue)
-        {
-            if (metadata == null)
-                metadata = new Dictionary<object, Dictionary<string, object>>();
-
-            if (m_namesAreNumeric == null)
-                m_namesAreNumeric = new Dictionary<string, bool>();
-
-            Dictionary<string, object> metadataDict;
-            if (!metadata.TryGetValue(itemValue, out metadataDict))
-            {
-                metadataDict = new Dictionary<string, object>();
-                metadata.Add(itemValue, metadataDict);
-            }
-
-            if (metadataValue != null)
-            {
-                bool isValueNumeric = !(metadataValue is string);
-                if (!m_namesAreNumeric.ContainsKey(metadataName))
-                {
-                    m_namesAreNumeric.Add(metadataName, isValueNumeric);
-                }
-                else if (isValueNumeric != m_namesAreNumeric[metadataName])
-                {
-                    throw new MetaStringsException($"Setting metadata name {metadataName} value type mismatch" +
-                                                   $"\n - Existing data numeric = {!isValueNumeric}" +
-                                                   $"\n - Value: {metadataName}");
-                }
-            }
-
-            metadataDict[metadataName] = metadataValue;
-        }
-
-        private Dictionary<string, bool> m_namesAreNumeric;
-    }
-
     public class Define
     {
         public string table { get; set; }

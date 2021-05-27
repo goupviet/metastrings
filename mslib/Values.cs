@@ -15,7 +15,7 @@ namespace metastrings
     /// </summary>
     public static class Values
     {
-        public static string[] CreateSql
+        internal static string[] CreateSql
         {
             get
             {
@@ -242,10 +242,7 @@ namespace metastrings
             }
         }
 
-        /// <summary>
-        /// Empty out the caches.
-        /// </summary>
-        public static void ClearCaches()
+        internal static void ClearCaches()
         {
             sm_cache.Clear();
             sm_cacheBack.Clear();
