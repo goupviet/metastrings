@@ -46,6 +46,10 @@ namespace metastrings
             m_dict.Add(key, val);
             m_list.Add(new KeyValuePair<K, V>(key, val));
         }
+        public bool TryGetValue(K key, out V val)
+        {
+            return m_dict.TryGetValue(key, out val);
+        }
 
         private List<KeyValuePair<K, V>> m_list { get; set; } = new List<KeyValuePair<K, V>>();
         private Dictionary<K, V> m_dict { get; set; } = new Dictionary<K, V>();
