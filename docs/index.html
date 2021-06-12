@@ -11,7 +11,7 @@
         }
 
         pre {
-            font-family: 'Courier New', monospace;
+            font-family: monospace;
         }
 
         #pageHeader {
@@ -22,7 +22,7 @@
 
         #navbar {
             background-color: lightblue;
-            width: 20em;
+            width: 17em;
             height: 100%;
             margin: 0;
             position: fixed;
@@ -39,24 +39,19 @@
         }
 
         #contentDiv {
-            margin-left: 20em;
+            margin-left: 17em;
             padding-left: 1em;
         }
 		
-		#projectVersion {
-			margin-left: 1em;
-		}
-
         .topic {
             font-weight: bolder;
             font-size: larger;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
 </head>
 <body>
     <div id=navbar>
-		<div class=contentGroupHeader>metastrings v2</div>
+		<div class=contentGroupHeader>metastrings</div>
         <ul>
             <li><a href="#whatis">What is metastrings?</a></li>
             <li><a href="#why">Why metastrings?</a></li>
@@ -68,30 +63,14 @@
 			<li><a href="mailto: contact@metastrings.io">contact@metastrings.io</a></li>
 		</ul>
 
+        <ul>
+			<li><a href="#sample">Sample program</a></li>
+		</ul>
+		
         <div class=contentGroupHeader>Libraries</div>
         <ul>
-            <li>
-                <a href="#lib-types">Implementation classes</a>
-                <ol>
-                    <li><a href="#Tables">Tables</a></li>
-                    <li><a href="#Items">Items</a></li>
-                    <li><a href="#Names">Names</a></li>
-                    <li><a href="#Values">Values</a></li>
-                    <li><a href="#NameValues">NameValues</a></li>
-                    <li><a href="#LongStrings">LongStrings</a></li>
-                    <li><a href="#Schema">Schema Diagram</a></li>
-                </ol>
-            </li>
-            <li>
-                <a href="#utils">utils</a>
-                <ol>
-                    <li><a href="#ListDictionary">ListDictionary</a></li>
-                    <li><a href="#ScopeTiming">ScopeTiming</a></li>
-                    <li><a href="#Types">Types</a></li>
-                    <li><a href="#Utils">Utils</a></li>
-                    <li><a href="#Metaq">metaq</a></li>
-                </ol>
-            </li>
+            <li><a href="#lib-types">Implementation classes</a></li>
+            <li><a href="#utils">Utils</a></li>
         </ul>
     </div>
 
@@ -111,32 +90,102 @@
 		
         <h2><a name="installation">Installation</a></h2>
 		<ul>
-			<li>Get the source from <a target=_blank href="https://github.com/michaelsballoni/metastrings2">GitHub</a>.
+			<li>Get the source from <a target=_blank href="https://github.com/michaelsballoni/metastrings">GitHub</a>.
 			<li>Build the source using Microsoft Visual Studio 2019 or newer.
-			
-			<li><h3>If using SQLite...</h3>
-			<li>Create a DB connection string like this:
-			<br>
-			<pre>&lt;add name="metastrings" connectionString="Data Source=[UserRoaming]metastrings.db" /&gt;</pre>
 			
 			<li><h3>If using MySQL...</h3>
 			<li>Provision a new MySQL database schema, call it "metastrings".
 			<li>Create the metastring schema using the "metastrings - schema.sql" file in the source repository under "schema"
 			<li>Create a DB connection string like this:
 			<br>
-			<pre>&lt;add name="metastrings" connectionString="Server=localhost; Database=metastrings; Uid=michael; Pwd=balloni;"/&gt;</pre>
+			<pre>Server=localhost; Database=metastrings; Uid=michael; Pwd=balloni;</pre>
 			
 			<li><h3>Integrate the metastrings project into your solution...</h3>
 			<li>Add a reference to metastring's mslib project
-			<li>Put the connection string in your application project configuration file.
-			
-			<li><h3>To start using metastrings in your code...</h3>
 			<li>metastrings uses the "metastrings" namespace
+			<li>Create a Context object and pass in your file path for SQLite or your connection string for MySQL 
 			<li>Use the Define class for UPSERTs
 			<li>Use the Sql class for SELECTs
-			<li>Use the Command's class's member functions for all other functionality, such as DELETEs and DROPs
+			<li>Use the Command's class's member functions for DELETEs and DROPs
 		</ul>
 		
+		<h3><a name="sample">Sample</a></h3>	
+<pre>using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.IO;
+
+namespace metastrings
+{
+    class Program
+    {
+        static async Task Main()
+        {
+            // Let's keep it simple and use SQLite
+            // We just need to define a path to the database
+            // If the file does not exist, an empty database is automatically created
+            string dbFilePath = 
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "cars.db");
+
+            // Create the Context object and pass in our database file path
+            using (var ctxt = new Context(dbFilePath))
+            {
+                // Add database records using a helper function...so many cars...
+                Console.WriteLine("Adding cars...");
+                await AddCarAsync(ctxt, 1982, "Chrysler", "LeBaron");
+                await AddCarAsync(ctxt, 1983, "Toyota", "Tercel");
+                await AddCarAsync(ctxt, 1998, "Toyota", "Tacoma");
+                await AddCarAsync(ctxt, 2001, "Nissan", "Xterra");
+                await AddCarAsync(ctxt, 1987, "Nissan", "Pathfinder");
+                //...
+
+                // Select data out of the database using a basic dialect of SQL
+                // No JOINs
+                // All WHERE criteria must use parameters
+                // All ORDER BY colums must be in SELECT column list
+                // Here we gather the "value" pseudo-column, the row ID created by the helper function
+                Console.WriteLine("Getting old cars...");
+                var oldCarGuids = new List&lt;object&gt;();
+                var select = 
+                    Sql.Parse("SELECT value, year, make, model FROM cars WHERE year &lt; @year ORDER BY year ASC");
+                select.AddParam("@year", 1990);
+                using (var reader = await ctxt.ExecSelectAsync(select))
+                {
+                    while (reader.Read())
+                    {
+                        oldCarGuids.Add(reader.GetValue(0));
+                        Console.WriteLine(reader.GetDouble(1) + ": " + reader.GetString(2) + " - " + reader.GetString(3));
+                    }
+                }
+
+                // Use the list of row IDs to delete some rows
+                Console.WriteLine("Deleting old cars...");
+                await ctxt.Cmd.DeleteAsync("cars", oldCarGuids);
+
+                // Drop the table to keep things clean for the new run
+                Console.WriteLine("Cleaning up...");
+                await ctxt.Cmd.DropAsync("cars");
+
+                Console.WriteLine("All done.");
+            }
+        }
+
+        // Given info about a car, add it to the database using the Context object
+        static async Task AddCarAsync(Context ctxt, int year, string make, string model)
+        {
+            // The Define class is used to UPSERT
+            // No need to create tables, just refer to them and the database takes care of it
+            // Same goes for columns, just add data into the columns and it just works
+            // The second parameter to the Define constructor is the row ID
+            // This would be a natural primary key, but we just use a GUID to keep things simple
+            var define = new Define("cars", Guid.NewGuid().ToString());
+            define.Set("year", year);
+            define.Set("make", make);
+            define.Set("model", model);
+            await ctxt.Cmd.DefineAsync(define);
+        }
+    }
+}</pre>
 		
         <h3><a name=lib-types>Implementation types</a></h3>
         These classes implement the core NoSQL functionality
@@ -156,9 +205,9 @@
             <li>
                 <a class=topic name=ListDictionary>ListDictionary</a>
                 <br>
-                A List/Dictionary hybrid, used to keep the order of KeyValue Adds as the order of KeyValue iteration
+                A List/Dictionary hybrid, used to keep the order of KeyValue Adds as the order of KeyValue addition
 				<br>
-				You get the fast lookups of a Dictionary, and the item ordering of List.
+				You get the fast lookups of a Dictionary, and the item ordering of a List.
                 <br>
                 This is needed for maintaining the order of results of ExecDictAsync
             </li>
