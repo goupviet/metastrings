@@ -20,13 +20,13 @@ namespace metastrings
 
             Assert.AreEqual(2, dict.Count);
 
-            Assert.AreEqual("foo", dict.FirstKey);
+            Assert.AreEqual("foo", dict.Keys.First());
 
-            Assert.AreEqual("foo", dict.Entries.First().Key);
-            Assert.AreEqual(1, dict.Entries.First().Value);
+            Assert.AreEqual("foo", dict.First().Key);
+            Assert.AreEqual(1, dict.First().Value);
 
-            Assert.AreEqual("bar", dict.Entries.Last().Key);
-            Assert.AreEqual(2, dict.Entries.Last().Value);
+            Assert.AreEqual("bar", dict.Last().Key);
+            Assert.AreEqual(2, dict.Last().Value);
 
             Assert.IsTrue(dict.Keys.Contains("foo"));
             Assert.IsTrue(dict.Values.Contains(1));

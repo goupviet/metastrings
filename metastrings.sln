@@ -5,20 +5,11 @@ VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mslib", "mslib\mslib.csproj", "{650108A4-B437-4F7F-B755-CFEA53BB58FD}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{74A41A45-80FD-4833-9669-3A0905120B65}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{31E62885-4DC5-48BB-8E54-FCEB9E3055A6}"
-	ProjectSection(SolutionItems) = preProject
-		docs\diagram.png = docs\diagram.png
-		docs\index.html = docs\index.html
-		docs\metastrings - plan.txt = docs\metastrings - plan.txt
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "metaq", "metaq\metaq.csproj", "{E26A596F-6EC2-4C31-843D-C86DD9E77389}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mstests", "tests\mstests.csproj", "{974560C1-4C0B-453A-BE0D-024CC16E3985}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "carsdb", "carsdb\carsdb.csproj", "{2F6C8839-99C5-4A97-A3A0-315DBCB36A36}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "carsdb", "carsdb\carsdb.csproj", "{2F6C8839-99C5-4A97-A3A0-315DBCB36A36}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -46,11 +37,8 @@ Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{31E62885-4DC5-48BB-8E54-FCEB9E3055A6} = {74A41A45-80FD-4833-9669-3A0905120B65}
-	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		VisualSVNWorkingCopyRoot = .
 		SolutionGuid = {1385C130-598D-4FC9-97D2-2CC750F0D03D}
+		VisualSVNWorkingCopyRoot = .
 	EndGlobalSection
 EndGlobal

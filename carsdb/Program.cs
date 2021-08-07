@@ -5,20 +5,27 @@ using System.IO;
 
 namespace metastrings
 {
+    /// <summary>
+    /// This program demostrate creating a NoSQL database and using all four of the metastrings commands
+    /// to populate and manipulate a cars database.
+    /// 1. UPSERT
+    /// 2. SELECT
+    /// 3. DELETE
+    /// 4. DROP
+    /// </summary>
     class Program
     {
         static async Task Main()
         {
-            // Let's keep it simple and use SQLite
-            // We just need to define a path to the database
-            // If the file does not exist, an empty database is automatically created
-            string dbFilePath = 
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "cars.db");
-
-            // Create the Context object and pass in our database file path
-            using (var ctxt = new Context(dbFilePath))
+            // metastrings is built on SQLite, so to create a metastrings database
+            // we simply need to specify the location for the database file.
+            // If the file does not exist, an empty database is automatically created.
+            // The Context class manages the SQLite database connection,
+            // provides many useful functions for executing SELECT queries,
+            // and provides access to the Command class for UPSERT, DELETE, and DROP.
+            using (var ctxt = new Context("cars.db"))
             {
-                // Add database records using a helper function...so many cars...
+                // Pass our Context into AddCarAsync to add database records...so many cars...
                 Console.WriteLine("Adding cars...");
                 await AddCarAsync(ctxt, 1982, "Chrysler", "LeBaron");
                 await AddCarAsync(ctxt, 1983, "Toyota", "Tercel");
@@ -28,29 +35,52 @@ namespace metastrings
                 //...
 
                 // Select data out of the database using a basic dialect of SQL
-                // No JOINs
-                // All WHERE criteria must use parameters
-                // All ORDER BY colums must be in SELECT column list
-                // Here we gather the "value" pseudo-column, the row ID created by the helper function
+                // Restrictions:
+                // 1. No JOINs
+                // 2. WHERE criteria must use parameters
+                // 3. ORDER BY colums must be in SELECT column list
+                // Here we gather the "value" pseudo-column, the row ID created by the AddCarAsync function
+                // We create a Select object with our SELECT query,
+                // pass in the value for the @year parameter,
+                // and use the Context.ExecSelectAsync function to execute the query.
                 Console.WriteLine("Getting old cars...");
-                var oldCarGuids = new List<object>();
-                var select = 
-                    Sql.Parse("SELECT value, year, make, model FROM cars WHERE year < @year ORDER BY year ASC");
+                var oldCarGuids = new List<string>();
+                Select select = 
+                    Sql.Parse
+                    (
+                        "SELECT value, year, make, model " +
+                        "FROM cars " +
+                        "WHERE year < @year " +
+                        "ORDER BY year ASC"
+                    );
                 select.AddParam("@year", 1990);
                 using (var reader = await ctxt.ExecSelectAsync(select))
                 {
+                    // The reader handed back is a System.Data.Common.DbDataReader,
+                    // straight out of SQLite.
+                    // But oh what SQL...
                     while (reader.Read())
                     {
-                        oldCarGuids.Add(reader.GetValue(0));
-                        Console.WriteLine(reader.GetDouble(1) + ": " + reader.GetString(2) + " - " + reader.GetString(3));
+                        // Collecting the row ID GUID that AddCarAsync added.
+                        oldCarGuids.Add(reader.GetString(0));
+
+                        // metastrings values are either numbers (doubles) or strings
+                        Console.WriteLine
+                        (
+                            reader.GetDouble(1) + ": " + 
+                            reader.GetString(2) + " - " + 
+                            reader.GetString(3)
+                        );
                     }
                 }
 
-                // Use the list of row IDs to delete some rows
+                // We use the list of row IDs to delete some rows.
+                // Here we call through the Context to create a Command object to do the DELETE.
                 Console.WriteLine("Deleting old cars...");
                 await ctxt.Cmd.DeleteAsync("cars", oldCarGuids);
 
-                // Drop the table to keep things clean for the new run
+                // Drop the table to keep things clean for the next run.
+                // We call through the Context to get a Command to do the DROP.
                 Console.WriteLine("Cleaning up...");
                 await ctxt.Cmd.DropAsync("cars");
 
@@ -58,18 +88,30 @@ namespace metastrings
             }
         }
 
-        // Given info about a car, add it to the database using the Context object
+        // Given info about a car, add it to the database using the Context object and a Define
+        /// <summary>
+        /// UPSERT a car into our database
+        /// </summary>
+        /// <param name="ctxt">The Context for doing database work</param>
+        /// <param name="year">The year of the car</param>
+        /// <param name="make">The make of the car</param>
+        /// <param name="model">The model of the car</param>
+        /// <returns></returns>
         static async Task AddCarAsync(Context ctxt, int year, string make, string model)
         {
-            // The Define class is used to UPSERT
-            // No need to create tables, just refer to them and the database takes care of it
-            // Same goes for columns, just add data into the columns and it just works
+            // The Define class is used to do UPSERTs.
+            // You pass the table name and primary key value to the constructor.
+            // No need to create tables, just refer to them and the database takes care of it.
             // The second parameter to the Define constructor is the row ID
             // This would be a natural primary key, but we just use a GUID to keep things simple
-            var define = new Define("cars", Guid.NewGuid().ToString());
+            Define define = new Define("cars", Guid.NewGuid().ToString());
+
+            // Use Define.Set function to add column data
             define.Set("year", year);
             define.Set("make", make);
             define.Set("model", model);
+
+            // Call through the Context to create a Command and do the UPSERT
             await ctxt.Cmd.DefineAsync(define);
         }
     }
