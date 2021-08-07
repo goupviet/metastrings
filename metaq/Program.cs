@@ -52,7 +52,7 @@ namespace metastrings
                     }
 
                     int resultCount = 0;
-                    using (var ctxt = new Context())
+                    using (var ctxt = new Context("metaq.db"))
                     {
                         string sql = await Sql.GenerateSqlAsync(ctxt, select);
 
